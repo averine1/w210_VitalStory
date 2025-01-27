@@ -17,3 +17,16 @@ Patients often struggle to consistently and accurately share relevant health inf
 ├── Presentation              # Placeholder
 
 ```
+## NEXT SECTION
+
+Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua...
+
+
+## NEXT SECTION
+
+Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua...
+
+
+## NEXT SECTION
+
+Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua...
