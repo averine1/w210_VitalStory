@@ -17,9 +17,10 @@ Patients often struggle to consistently and accurately share relevant health inf
 ├── Presentation              # Placeholder
 
 ```
-## NEXT SECTION
+## Additional Resources
 
-Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua...
+You can access additional resources and data files [here](https://drive.google.com/drive/folders/1seaFZE4kNgzxefj8gGbBmvSFv7aysGhj?usp=sharing).
+
 
 
 ## NEXT SECTION
