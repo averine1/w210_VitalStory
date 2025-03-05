@@ -1,0 +1,736 @@
+/* Global styles */
+body {
+    margin: 0;
+    padding: 0;
+    background: #f0f0f0;
+    font-family: Arial, sans-serif;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+  .page {
+    width: 390px;
+    min-height: 844px;  /* if doesn't work use 100vh*/
+    transition: opacity 1s ease-in-out;
+    position: relative;
+    overflow-y: auto;/* If content grows it will scroll*/
+  }
+  /* Initially visible */
+  .visible {
+    opacity: 1;
+  }
+  .hidden {
+    display: none;
+  }
+  .fade-out{
+    opacity: 0;
+    transition: opacity 1s ease-in-out;
+  }
+
+  /* Reusable Banner Component */
+  .banner-container {
+    position: absolute; /* pinned at the top */
+    top: 0;
+    left: 0;
+    width: 390px;
+    height: 150px; /* your banner’s height */
+    z-index: 1;
+  }
+  .banner-background {
+    width: 100%;
+    height: 150px; /* Match above */
+    background: linear-gradient(180deg, #B478CF 0%, #8885D3 50%, #5D92D8 100%);
+    border-radius: 0;
+  }
+    /* Login Page Styles */
+  .login-container {
+    position: absolute;        
+    top: 150px;                    /* exactly below the banner */
+    left: 0;
+    width: 390px;
+    height: calc(844px - 150px);   /* remaining space */
+    background: #FFFFFF;           /* so it clearly sits below the banner */
+    border-radius: 0;  /* optional rounding at the top corners */
+    box-sizing: border-box;
+    padding: 20px;
+    z-index: 2;
+  /*overflow-y: auto; /* if you need scrolling */
+  }
+   /* Sign-Up Page Styles */
+   .signup-container {
+    position: absolute;     /* so it can start below banner */
+    top: 150px;            /* same as banner height */
+    left: 0;
+    width: 390px;
+    height: calc(844px - 183px); 
+    background: #FFF;
+    border-radius: 0;
+  /* Add internal padding if you like: */
+    padding: 20px;
+    box-sizing: border-box;
+  }
+  .company-name {
+    position: absolute;
+    width: 293px;
+    height: 99px;
+    left: 87px;
+    top: 59px;
+  }
+  .company-logo {
+    position: absolute;
+    width: 86px;
+    height: 86px;
+    left: 19px;
+    top: 58px;
+  }
+
+  /* Startup Page Styles */
+  .startup-container {
+    width: 390px;
+    height: 844px;
+    position: relative;
+    background: linear-gradient(180deg, #B579D0 24%, #8586D5 60%, #6E8DD7 75%, #5693D9 100%);
+  }
+  .startup-container .bg-image1 {
+    position: absolute;
+    left: 150px;
+    top: 377px;
+    width: 90px;
+    height: 90px;
+  }
+  .startup-container .bg-image2 {
+    position: absolute;
+    left: -8px;
+    top: 260px;
+    width: 406px;
+    height: 137px;
+  }
+
+  .tagline {
+    width: 342px;
+    margin: 0 auto 20px;
+    color: #313957;
+    font-family: 'Inter', sans-serif;
+    text-align: center;
+  }
+  .tagline .title {
+    font-size: 18px;
+    font-weight: 700;
+    line-height: 28.8px;
+    letter-spacing: 0.18px;
+    margin-bottom: 8px;
+  }
+  .tagline .subtitle {
+    font-size: 15px;
+    font-weight: 400;
+    line-height: 24px;
+    letter-spacing: 0.15px;
+  }
+  .input-group {
+    width: 342px;
+    margin: 10px auto;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+  .input-group label {
+    color: #0C1421;
+    font-size: 14px;
+    font-family: Roboto, sans-serif;
+    font-weight: 400;
+    line-height: 14px;
+    letter-spacing: 0.14px;
+  }
+  .input-group input {
+    width: 100%;
+    height: 42px;
+    background: #F3F7FB;
+    border: 1px solid #D4D7E3;
+    border-radius: 8px;
+    padding: 0 14px;
+    font-size: 14px;
+    color: #8897AD;
+  }
+  .forgot-password {
+    text-align: center;
+    color: #1E4AE9;
+    font-size: 14px;
+    margin: 10px auto;
+    cursor: pointer;
+  }
+  .sign-in-button {
+    width: 342px;
+    height: 44px;
+    background: #162D3A;
+    border-radius: 12px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin: 20px auto;
+    cursor: pointer;
+  }
+  .sign-in-button span {
+    color: white;
+    font-size: 16px;
+    font-family: Roboto, sans-serif;
+    font-weight: 700;
+  }
+  .divider {
+    width: 342px;
+    margin: 20px auto;
+    border: none;
+    border-top: 1px solid #D4D7E3;
+  }
+  .signup-prompt {
+    width: 342px;
+    text-align: center;
+    margin: 10px auto;
+    font-size: 16px;
+    font-family: Roboto, sans-serif;
+    line-height: 25.6px;
+    letter-spacing: 0.16px;
+  }
+  .signup-prompt span:first-child {
+    color: #313957;
+    font-weight: 400;
+  }
+  .signup-prompt span:last-child {
+    color: #1E4AE9;
+    font-weight: 400;
+    cursor: pointer;
+  }
+
+   .welcome-text {
+    width: 342px;
+    margin: 0 auto 20px;
+    text-align: center;
+    font-family: 'Inter', sans-serif;
+  }
+  .welcome-text .title {
+    color: #0C1421;
+    font-size: 24px;
+    font-weight: 600;
+    line-height: 24px;
+    letter-spacing: 0.24px;
+  }
+  .welcome-text .emoji {
+    color: #0C1421;
+    font-size: 24px;
+    font-weight: 400;
+    line-height: 24px;
+    letter-spacing: 0.24px;
+  }
+  .welcome-text .subtitle {
+    color: #313957;
+    font-size: 15px;
+    font-weight: 400;
+    line-height: 24px;
+    letter-spacing: 0.15px;
+    margin-top: 10px;
+  }
+  .profile-avatar {
+    position: relative;
+    text-align: center;
+    margin-bottom: 20px;
+  }
+  /* Main avatar image */
+  #chosenAvatar {
+    width: 103px;
+    height: 103px;
+    border-radius: 9999px;
+    border: 3px solid #20B5C4;
+  }
+  .dropdown-icon {
+    margin-top: -20px;
+    display: inline-block;
+    cursor: pointer;
+  }
+  .dropdown-icon svg {
+    width: 21px;
+    height: 13px;
+  }
+  /* Avatar Dropdown (appears below the profile-avatar) */
+  #avatarDropdown {
+    display: none; /* Hidden by default */
+    position: absolute;
+    top: calc(100% + 5px); /* 5px below the profile-avatar container */
+    left: 50%;
+    transform: translateX(-50%);
+    width: 280px;
+    background: #fff;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+    z-index: 999;
+    max-height: 270px;
+    overflow-y: auto;
+    box-sizing: border-box;
+    padding: 10px;
+  }
+  /* Dropdown header */
+  #avatarDropdown .dropdown-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 8px;
+    font-weight: 600;
+  }
+  #avatarDropdown .close-dropdown {
+    background: none;
+    border: none;
+    font-size: 16px;
+    cursor: pointer;
+  }
+  /* Grid for avatars */
+  #avatarDropdown .avatar-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 10px;
+  }
+  #avatarDropdown .avatar-item {
+    text-align: center;
+    cursor: pointer;
+  }
+  #avatarDropdown .avatar-item img {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    object-fit: cover;
+    transition: transform 0.2s;
+  }
+  #avatarDropdown .avatar-item img:hover {
+    transform: scale(1.05);
+  }
+  .input-container {
+    width: 342px;
+    margin: 0 auto 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+  .input-group-signup {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+  .input-group-signup label {
+    color: #0C1421;
+    font-size: 14px;
+    font-family: Roboto, sans-serif;
+    font-weight: 400;
+    line-height: 14px;
+    letter-spacing: 0.14px;
+  }
+  .input-field {
+    position: relative;
+    height: 42px;
+  }
+  .input-field .input-bg {
+    width: 342px;
+    height: 42px;
+    position: absolute;
+    top: 0;
+    left: 0;
+    background: #F3F7FB;
+    border: 1px solid #D4D7E3;
+    border-radius: 8px;
+  }
+  .input-field .placeholder {
+    position: absolute;
+    top: 14px;
+    left: 14px;
+    color: #8897AD;
+    font-size: 14px;
+    font-family: Roboto, sans-serif;
+    font-weight: 400;
+    line-height: 14px;
+    letter-spacing: 0.14px;
+  }
+  .create-account-button {
+    width: 342px;
+    height: 44px;
+    padding: 14px 0;
+    background: #162D3A;
+    border-radius: 12px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin: 0 auto;
+    cursor: pointer;
+  }
+  .create-account-button span {
+    color: white;
+    font-size: 16px;
+    font-family: Roboto, sans-serif;
+    font-weight: 700;
+    line-height: 16px;
+    letter-spacing: 0.16px;
+  }
+  #loginPage {
+    position: relative;    /* so children can be absolutely placed if needed */
+    background: white;     /* or another color */
+    width: 390px;
+    height: 844px;
+    /* optional: overflow: hidden or scroll if you prefer scrolling */
+  }
+  #signupPage {
+    position: relative;    /* so children can be absolutely placed if needed */
+    background: white;     /* or another color */
+    width: 390px;
+    height: 844px;
+    /* optional: overflow: hidden or scroll if you prefer scrolling */
+  }
+
+  /* Details Page Styles */
+  #detailsPage {
+    position: relative;
+    background: white;
+    width: 390px;
+    height: 844px;
+  }
+
+  /* HIPAA Authorization Page Styles */
+  #hipaaPage {
+    position: relative;
+    background: white;
+    width: 390px;
+    height: 844px;
+  }
+  /* The entire tutorial page, same size as your app pages */
+#tutorialPage2 {
+    position: relative;
+    width: 390px;
+    height: 844px;
+    background: #FFF; /* white background below banner */
+    z-index: 9999;
+  }
+  
+  /* Gradient Banner (370px tall) */
+  .tutorial-banner {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 390px;
+    height: 370px;
+    background: linear-gradient(180deg, #B478CF 0%, #8885D3 50%, #5D92D8 100%);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-end; /* push heading & dots to bottom if you prefer */
+    padding-bottom: 20px;      /* space under heading for dots */
+    box-sizing: border-box;
+  }
+  
+  /* Big heading text (55px) in banner */
+  .tutorial-heading {
+    color: #FFF;
+    font-family: 'Inter', sans-serif;
+    font-size: 55px;
+    font-weight: 700;
+    line-height: 1.6;  /* 160% => 88px line-height if you prefer explicit px */
+    text-align: center;
+    letter-spacing: 0.55px;
+    margin-bottom: 20px; /* space above dots */
+  }
+  
+  /* Dots container */
+  .tutorial-dots {
+    display: flex;
+    gap: 8px;        /* space between dots */
+    align-items: center;
+    justify-content: center;
+  }
+  
+  /* Dot styling (12x12) */
+  .tutorial-dot {
+    width: 12px;
+    height: 12px;
+    flex-shrink: 0;
+  }
+  .tutorial-dot.active path {
+    fill: #BF7DDC; /* Purple fill for the active dot */
+  }
+  
+  /* White content area below the banner */
+  .tutorial-content {
+    position: absolute;
+    top: 370px;  /* below banner's 370px */
+    left: 0;
+    width: 390px;
+    min-height: calc(844px - 370px); /* leftover space */
+    background: #FFF;
+    text-align: center;
+    padding: 20px;
+    box-sizing: border-box;
+    padding-bottom: 120px;
+    overflow-y: auto; /* scroll if content is long */
+  }
+  
+  /* Main text styles */
+  .tutorial-content p {
+    color: #313957;
+    font-family: Inter, sans-serif;
+    font-size: 20px;
+    font-weight: 400;
+    line-height: 1.6; /* 32px if you prefer explicit px */
+    letter-spacing: 0.2px;
+    margin-bottom: 16px;
+  }
+  
+  /* Highlight words (document, organize, communicate) */
+  .highlight {
+    color: #B478CF;
+    font-weight: 700;
+  }
+  
+  /* Tutorial Footer (SVG wave) at bottom */
+  .tutorial-footer {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 390px;
+    height: 79px; /* matches your SVG height */
+    overflow: hidden; /* if needed */
+    z-index: 999;
+  }
+  .tutorial-footer svg {
+    width: 390px;
+    height: 79px;
+  }
+  .tutorial-footer {
+    position: absolute; /* or relative, if you prefer */
+    bottom: 0;
+    left: 0;
+    width: 390px;
+    height: 79px;
+    z-index: 99; /* so it appears above the page background */
+  }
+  
+  /* The .footer-nav holds 3 icons horizontally */
+  .footer-nav {
+    position: absolute;
+    bottom: 0; 
+    left: 0;
+    width: 100%;
+    height: 79px;
+    display: flex;
+    justify-content: space-around; /* space them out evenly */
+    align-items: center;
+  }
+  
+  /* Generic style for each footer button */
+  .footer-btn {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    cursor: pointer;
+    color: #313957;
+    font-family: 'Inter', sans-serif;
+    font-size: 12px;
+    text-decoration: none;
+  }
+  
+  /* Icon images*/
+  .footer-btn img,
+  .footer-btn svg {
+    width: 32px;  /* or 62.5px for the new-log? Adjust as needed */
+    height: 32px;
+    margin-bottom: 4px;
+  }
+  
+  /* The special new-log icon from Figma using background-image */
+  .new-log-icon {
+    width: 40px;
+    height: 40px;
+    background: url('https://s3-alpha-sig.figma.com/img/11a3/030c/455bd8bac1b67754ad010d530aea5560?Expires=1742169600&Key-Pair-Id=APKAQ4GOSFWCW27IBOMQ&Signature=EFAeqzfBSIvNyst06KMJBbnGj2TXc3ypQ-Bsn0hhQo3bhpJuSf8Czx9chZgA4PBKdOdwMy~84fcyJRe3~CfjBOQV3Gn~xsC1aMtsG3FF7i6GF9nmcI4N9CmusBxDCqGdBRiPSAw2y5YiWlTxZliQFWu1wqGZrPiRyDkFKWzFEmJDIVRGmTBozIa1H2g0fasP8q54eI~LeW1dP9V0RGGptzRAM-WXxGEh05GAOPlA9PmnyOfDOqvnlBAsZh4ARtbwZhnTp6pawramykOi0b4nyr2WmA7PByX36H7~pmD~o3~kvrMw0kV7FaJJOeXPhiBpRhpfNtOB0i7EnarGVWcl9Q__') center/cover no-repeat;
+    /* shift it upward so it sits in the wave curve */
+    position: relative;
+    top: -10px;
+    margin-bottom: 2px;
+    z-index: 999;
+  }
+  .footer-icon {
+    width: 32px;
+    height: 32px;
+    /* or any custom size you want */
+    margin-bottom: 4px; /* space between icon & text */
+  }
+  
+  
+  /* .footer-btn.main if you want the text also raised or styled differently */
+  .footer-btn.main {
+    position: relative;
+    bottom: 10px; /* raise the button group up into the wave */
+  }
+  /* Page container */
+#tutorialPage21 {
+    position: relative;
+    width: 390px;
+    height: 844px;
+    background: #FFF;
+    z-index: 9999;
+  }
+  
+  /* Re-use your .tutorial-banner from the previous page if desired,
+     or define new styles specifically for 2.1. */
+  .tutorial-banner {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 390px;
+    height: 370px;
+    background: linear-gradient(180deg, #B478CF 0%, #8885D3 50%, #5D92D8 100%);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-end;
+    padding-bottom: 20px;
+    box-sizing: border-box;
+  }
+  
+  /* Big heading text for 2.1 */
+  .tutorial-heading {
+    color: #FFF;
+    font-family: 'Inter', sans-serif;
+    font-size: 55px;
+    font-weight: 700;
+    line-height: 1.6; /* or 160% */
+    text-align: center;
+    letter-spacing: 0.55px;
+    margin-bottom: 20px; /* space above dots */
+  }
+  
+  /* If you want to highlight 'VitalStory' differently */
+  .logo-name {
+    text-decoration: underline;
+  }
+  
+  /* The dot container */
+  .tutorial-dots {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    justify-content: center;
+  }
+  
+  /* The content area below the banner */
+  .tutorial-content21 {
+    position: absolute;
+    top: 370px; /* below banner's height */
+    left: 0;
+    width: 390px;
+    height: calc(844px - 370px);
+    background: #FFF;
+    text-align: center;
+    padding: 20px;
+    box-sizing: border-box;
+    overflow-y: auto;
+  }
+  
+  /* Purple heading: "Log important health updates" */
+  .purple-heading {
+    width: 353px;
+    margin: 0 auto 20px;
+    color: #B478CF;
+    font-family: 'Inter', sans-serif;
+    font-size: 25px;
+    font-weight: 700;
+    line-height: 1.6;
+    letter-spacing: 0.25px;
+  }
+  
+  /* Black text: "Track symptoms..." */
+  .black-text {
+    color: #313957;
+    font-family: 'Inter', sans-serif;
+    font-size: 18px;
+    font-weight: 700;
+    line-height: 1.6;
+    letter-spacing: 0.18px;
+    margin-bottom: 30px;
+  }
+  
+  /* The italic purple "New Log" word */
+  .italic-purple {
+    color: #9482D3;
+    font-style: italic;
+    font-weight: 700;
+  }
+  
+  /* Steps container */
+  .steps-container {
+    position: relative;
+    width: 100%;
+    height: 150px; /* adjust as needed */
+    margin-top: 20px;
+  }
+  
+  /* Step numbers "1", "2", "3" */
+  .step {
+    position: absolute;
+    font-family: 'Urbanist', sans-serif;
+    font-size: 60px;
+    font-weight: 600;
+    line-height: 75px; /* 125% of 60 is 75 */
+    letter-spacing: 1.2px;
+    text-align: center;
+    width: 121px;
+    height: 81px;
+  }
+  
+  /* Step #1 in purple */
+  .step1 {
+    color: #B478CF;
+    left: 130px;  /* tweak the positions to line up how you want */
+    top: 0;
+  }
+  
+  /* Step #2 in blue (#5D92D8) */
+  .step2 {
+    color: #5D92D8;
+    left: 30px;
+    top: 20px;
+  }
+  
+  /* Step #3 in blue */
+  .step3 {
+    color: #5D92D8;
+    right: 30px;
+    top: 20px;
+  }
+  
+  /* Arrow icon and label "Here" */
+  .arrow-icon {
+    position: absolute;
+    left: 155px; /* tweak to place arrow near the #1 icon */
+    top: 70px;
+    width: 34px;
+    height: 34px;
+  }
+  
+  /* just a normal <img> for the arrow:
+  .arrow-icon img {
+    width: 34px;
+    height: 34px;
+  }
+  */
+  
+  .arrow-label {
+    position: absolute;
+    left: 145px;  /* near the arrow */
+    top: 105px;
+    width: 98px;
+    height: 37px;
+    color: #000;
+    font-family: 'Urbanist';
+    font-size: 15px;
+    font-weight: 600;
+    line-height: 1.25; /* 125% => 18.75px */
+    letter-spacing: 0.3px;
+    text-align: center;
+  }
+  
+  /* Re-use your existing .tutorial-footer, .footer-nav, .footer-btn, .new-log-icon, etc. */
+  
+  
+  
