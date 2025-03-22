@@ -1,118 +1,154 @@
 /* Global styles */
-body {
+* {
     margin: 0;
     padding: 0;
-    background: #f0f0f0;
-    font-family: Arial, sans-serif;
+    box-sizing: border-box;
+  }
+  
+  html, body {
+    width: 100%;
+    height: 100%;
+    font-family: 'Inter', 'Roboto', sans-serif;
+    background-color: #f5f5f5;
+    overflow-x: hidden;
+  }
+  
+  /* App container for centering on all devices */
+  .app-container {
     display: flex;
-    flex-direction: column;
+    justify-content: center;
     align-items: center;
+    min-height: 100vh;
+    width: 100%;
+    padding: 0;
   }
-  .page {
+  
+  .app-wrapper {
     width: 390px;
-    min-height: 844px;  /* if doesn't work use 100vh*/
-    transition: opacity 1s ease-in-out;
+    height: 844px;
     position: relative;
-    overflow-y: auto;/* If content grows it will scroll*/
+    overflow: hidden;
+    background-color: white;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    margin: 0 auto;
   }
-  /* Initially visible */
-  .visible {
-    opacity: 1;
-  }
-  .hidden {
-    display: none;
-  }
-  .fade-out{
-    opacity: 0;
-    transition: opacity 1s ease-in-out;
-  }
-
-  /* Reusable Banner Component */
-  .banner-container {
-    position: absolute; /* pinned at the top */
+  
+  /* Page styles */
+  .page {
+    width: 100%;
+    height: 100%;
+    position: absolute;
     top: 0;
     left: 0;
-    width: 390px;
-    height: 150px; /* your banner’s height */
+    transition: opacity 0.5s ease;
+    background-color: white;
+    overflow: hidden;
+  }
+  
+  .visible {
+    opacity: 1;
+    display: block;
+  }
+  
+  .hidden {
+    opacity: 0;
+    pointer-events: none;
+    display: none;
+  }
+  
+  .fade-out {
+    opacity: 0;
+    transition: opacity 0.5s ease-out;
+  }
+  
+  .fade-in {
+    opacity: 1;
+    transition: opacity 0.5s ease-in;
+  }
+  
+  /* Reusable Banner Component */
+  .banner-container {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 150px;
     z-index: 1;
   }
+  
   .banner-background {
     width: 100%;
-    height: 150px; /* Match above */
+    height: 100%;
     background: linear-gradient(180deg, #B478CF 0%, #8885D3 50%, #5D92D8 100%);
-    border-radius: 0;
   }
-    /* Login Page Styles */
-  .login-container {
-    position: absolute;        
-    top: 150px;                    /* exactly below the banner */
-    left: 0;
-    width: 390px;
-    height: calc(844px - 150px);   /* remaining space */
-    background: #FFFFFF;           /* so it clearly sits below the banner */
-    border-radius: 0;  /* optional rounding at the top corners */
-    box-sizing: border-box;
-    padding: 20px;
-    z-index: 2;
-  /*overflow-y: auto; /* if you need scrolling */
-  }
-   /* Sign-Up Page Styles */
-   .signup-container {
-    position: absolute;     /* so it can start below banner */
-    top: 150px;            /* same as banner height */
-    left: 0;
-    width: 390px;
-    height: calc(844px - 183px); 
-    background: #FFF;
-    border-radius: 0;
-  /* Add internal padding if you like: */
-    padding: 20px;
-    box-sizing: border-box;
-  }
+  
   .company-name {
     position: absolute;
     width: 293px;
     height: 99px;
     left: 87px;
     top: 59px;
+    z-index: 2;
   }
+  
   .company-logo {
     position: absolute;
     width: 86px;
     height: 86px;
     left: 19px;
     top: 58px;
+    z-index: 2;
   }
-
+  
   /* Startup Page Styles */
   .startup-container {
-    width: 390px;
-    height: 844px;
+    width: 100%;
+    height: 100%;
     position: relative;
     background: linear-gradient(180deg, #B579D0 24%, #8586D5 60%, #6E8DD7 75%, #5693D9 100%);
+    overflow: hidden;
   }
+  
   .startup-container .bg-image1 {
     position: absolute;
     left: 150px;
     top: 377px;
     width: 90px;
     height: 90px;
+    max-width: 100%;
+    opacity: 1;
   }
+  
   .startup-container .bg-image2 {
     position: absolute;
-    left: -8px;
+    left: 0;
     top: 260px;
-    width: 406px;
+    width: 100%;
     height: 137px;
+    max-width: 100%;
+    opacity: 1;
   }
-
+  
+  /* Login Page Styles */
+  .login-container {
+    position: absolute;
+    top: 150px;
+    left: 0;
+    width: 100%;
+    height: calc(100% - 150px);
+    background: #FFFFFF;
+    box-sizing: border-box;
+    padding: 20px;
+    z-index: 2;
+  }
+  
   .tagline {
     width: 342px;
     margin: 0 auto 20px;
     color: #313957;
-    font-family: 'Inter', sans-serif;
     text-align: center;
   }
+  
   .tagline .title {
     font-size: 18px;
     font-weight: 700;
@@ -120,27 +156,32 @@ body {
     letter-spacing: 0.18px;
     margin-bottom: 8px;
   }
+  
   .tagline .subtitle {
     font-size: 15px;
     font-weight: 400;
     line-height: 24px;
     letter-spacing: 0.15px;
   }
+  
   .input-group {
-    width: 342px;
+    width: 100%;
+    max-width: 342px;
     margin: 10px auto;
     display: flex;
     flex-direction: column;
     gap: 8px;
   }
+  
   .input-group label {
     color: #0C1421;
     font-size: 14px;
-    font-family: Roboto, sans-serif;
+    font-family: 'Roboto', sans-serif;
     font-weight: 400;
     line-height: 14px;
     letter-spacing: 0.14px;
   }
+  
   .input-group input {
     width: 100%;
     height: 42px;
@@ -149,15 +190,18 @@ body {
     border-radius: 8px;
     padding: 0 14px;
     font-size: 14px;
-    color: #8897AD;
+    color: #313957;
   }
+  
   .forgot-password {
     text-align: center;
     color: #1E4AE9;
     font-size: 14px;
     margin: 10px auto;
     cursor: pointer;
+    width: 342px;
   }
+  
   .sign-in-button {
     width: 342px;
     height: 44px;
@@ -169,43 +213,63 @@ body {
     margin: 20px auto;
     cursor: pointer;
   }
+  
   .sign-in-button span {
     color: white;
     font-size: 16px;
-    font-family: Roboto, sans-serif;
+    font-family: 'Roboto', sans-serif;
     font-weight: 700;
   }
+  
   .divider {
     width: 342px;
     margin: 20px auto;
     border: none;
     border-top: 1px solid #D4D7E3;
   }
+  
   .signup-prompt {
     width: 342px;
     text-align: center;
     margin: 10px auto;
     font-size: 16px;
-    font-family: Roboto, sans-serif;
+    font-family: 'Roboto', sans-serif;
     line-height: 25.6px;
     letter-spacing: 0.16px;
   }
+  
   .signup-prompt span:first-child {
     color: #313957;
     font-weight: 400;
   }
+  
   .signup-prompt span:last-child {
     color: #1E4AE9;
     font-weight: 400;
     cursor: pointer;
   }
-
-   .welcome-text {
+  
+  /* Sign-Up Page Styles */
+  .signup-container {
+    position: absolute;
+    top: 150px;
+    left: 0;
+    width: 100%;
+    height: calc(100% - 150px);
+    background: #FFF;
+    border-radius: 0;
+    overflow-y: auto;
+    padding: 20px;
+    box-sizing: border-box;
+  }
+  
+  .welcome-text {
     width: 342px;
     margin: 0 auto 20px;
     text-align: center;
     font-family: 'Inter', sans-serif;
   }
+  
   .welcome-text .title {
     color: #0C1421;
     font-size: 24px;
@@ -213,6 +277,7 @@ body {
     line-height: 24px;
     letter-spacing: 0.24px;
   }
+  
   .welcome-text .emoji {
     color: #0C1421;
     font-size: 24px;
@@ -220,6 +285,7 @@ body {
     line-height: 24px;
     letter-spacing: 0.24px;
   }
+  
   .welcome-text .subtitle {
     color: #313957;
     font-size: 15px;
@@ -228,11 +294,13 @@ body {
     letter-spacing: 0.15px;
     margin-top: 10px;
   }
+  
   .profile-avatar {
     position: relative;
     text-align: center;
     margin-bottom: 20px;
   }
+  
   /* Main avatar image */
   #chosenAvatar {
     width: 103px;
@@ -240,20 +308,23 @@ body {
     border-radius: 9999px;
     border: 3px solid #20B5C4;
   }
+  
   .dropdown-icon {
     margin-top: -20px;
     display: inline-block;
     cursor: pointer;
   }
+  
   .dropdown-icon svg {
     width: 21px;
     height: 13px;
   }
-  /* Avatar Dropdown (appears below the profile-avatar) */
+  
+  /* Avatar Dropdown */
   #avatarDropdown {
     display: none; /* Hidden by default */
     position: absolute;
-    top: calc(100% + 5px); /* 5px below the profile-avatar container */
+    top: 120px; /* Adjust this value if needed */
     left: 50%;
     transform: translateX(-50%);
     width: 280px;
@@ -261,12 +332,11 @@ body {
     border: 1px solid #ccc;
     border-radius: 8px;
     box-shadow: 0 2px 8px rgba(0,0,0,0.2);
-    z-index: 999;
+    z-index: 999; /* Make sure it's high enough */
     max-height: 270px;
     overflow-y: auto;
-    box-sizing: border-box;
-    padding: 10px;
   }
+  
   /* Dropdown header */
   #avatarDropdown .dropdown-header {
     display: flex;
@@ -275,22 +345,26 @@ body {
     margin-bottom: 8px;
     font-weight: 600;
   }
+  
   #avatarDropdown .close-dropdown {
     background: none;
     border: none;
     font-size: 16px;
     cursor: pointer;
   }
+  
   /* Grid for avatars */
   #avatarDropdown .avatar-grid {
     display: grid;
     grid-template-columns: repeat(4, 1fr);
     gap: 10px;
   }
+  
   #avatarDropdown .avatar-item {
     text-align: center;
     cursor: pointer;
   }
+  
   #avatarDropdown .avatar-item img {
     width: 60px;
     height: 60px;
@@ -298,111 +372,307 @@ body {
     object-fit: cover;
     transition: transform 0.2s;
   }
+  
   #avatarDropdown .avatar-item img:hover {
     transform: scale(1.05);
   }
+  
   .input-container {
-    width: 342px;
+    width: 100%;
+    max-width: 342px;
     margin: 0 auto 20px;
     display: flex;
     flex-direction: column;
     gap: 16px;
   }
+  
   .input-group-signup {
     display: flex;
     flex-direction: column;
     gap: 8px;
   }
+  
   .input-group-signup label {
     color: #0C1421;
     font-size: 14px;
-    font-family: Roboto, sans-serif;
+    font-family: 'Roboto', sans-serif;
     font-weight: 400;
     line-height: 14px;
     letter-spacing: 0.14px;
   }
-  .input-field {
-    position: relative;
+  
+  /* Real input styling */
+  .real-input {
+    width: 100%;
     height: 42px;
-  }
-  .input-field .input-bg {
-    width: 342px;
-    height: 42px;
-    position: absolute;
-    top: 0;
-    left: 0;
     background: #F3F7FB;
     border: 1px solid #D4D7E3;
     border-radius: 8px;
-  }
-  .input-field .placeholder {
-    position: absolute;
-    top: 14px;
-    left: 14px;
-    color: #8897AD;
+    padding: 0 14px;
     font-size: 14px;
-    font-family: Roboto, sans-serif;
-    font-weight: 400;
-    line-height: 14px;
-    letter-spacing: 0.14px;
+    color: #313957;
+    box-sizing: border-box;
+    font-family: 'Roboto', sans-serif;
   }
+  
+  .real-input:focus {
+    outline: none;
+    border-color: #B478CF;
+    box-shadow: 0 0 0 2px rgba(180, 120, 207, 0.2);
+  }
+  
+  .real-input::placeholder {
+    color: #8897AD;
+  }
+  
   .create-account-button {
-    width: 342px;
-    height: 44px;
+    width: 100%;
+    max-width: 342px;
     padding: 14px 0;
     background: #162D3A;
     border-radius: 12px;
     display: flex;
     justify-content: center;
     align-items: center;
-    margin: 0 auto;
+    margin: 20px auto;
     cursor: pointer;
   }
+  
   .create-account-button span {
     color: white;
     font-size: 16px;
-    font-family: Roboto, sans-serif;
+    font-family: 'Roboto', sans-serif;
     font-weight: 700;
     line-height: 16px;
     letter-spacing: 0.16px;
   }
-  #loginPage {
-    position: relative;    /* so children can be absolutely placed if needed */
-    background: white;     /* or another color */
-    width: 390px;
-    height: 844px;
-    /* optional: overflow: hidden or scroll if you prefer scrolling */
-  }
-  #signupPage {
-    position: relative;    /* so children can be absolutely placed if needed */
-    background: white;     /* or another color */
-    width: 390px;
-    height: 844px;
-    /* optional: overflow: hidden or scroll if you prefer scrolling */
-  }
-
+  
   /* Details Page Styles */
-  #detailsPage {
-    position: relative;
+  .details-content {
+    position: absolute;
+    top: 150px;
+    left: 0;
+    width: 100%;
+    height: calc(100% - 150px);
     background: white;
-    width: 390px;
-    height: 844px;
+    padding: 20px;
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    overflow: hidden;
+  }
+  
+  #detailsPage {
+    overflow: hidden;
   }
 
-  /* HIPAA Authorization Page Styles */
-  #hipaaPage {
-    position: relative;
-    background: white;
-    width: 390px;
-    height: 844px;
+  .details-subtitle {
+    width: 311px;
+    text-align: center;
+    color: #313957;
+    font-size: 15px;
+    font-family: 'Inter', sans-serif;
+    font-weight: 400;
+    line-height: 24px;
+    letter-spacing: 0.15px;
+    margin-top: 30px;
   }
-  /* The entire tutorial page, same size as your app pages */
-#tutorialPage2 {
+  
+  .details-title {
+    width: 342px;
+    text-align: center;
+    color: #0C1421;
+    font-size: 24px;
+    font-family: 'Inter', sans-serif;
+    font-weight: 600;
+    line-height: 24px;
+    letter-spacing: 0.24px;
+    margin-top: 10px;
+  }
+  
+  .details-avatar {
+    width: 103px;
+    height: 103px;
+    border-radius: 9999px;
+    border: 3px solid #20B5C4;
+    margin-top: 20px;
+  }
+  
+  .details-form {
+    width: 342px;
+    margin-top: 40px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+  
+  .details-field {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+  
+  .details-label {
+    color: #0C1421;
+    font-size: 14px;
+    font-family: 'Roboto', sans-serif;
+    font-weight: 400;
+    line-height: 14px;
+    letter-spacing: 0.14px;
+  }
+  
+  .details-input {
+    width: 100%;
+    height: 42px;
+    background: #F3F7FB;
+    border: 1px solid #D4D7E3;
+    border-radius: 8px;
+    padding: 0 14px;
+    color: #313957;
+    font-size: 14px;
+    font-family: 'Roboto', sans-serif;
+    box-sizing: border-box;
+  }
+  
+  .details-birthday-section {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+  
+  .details-birthday-fields {
+    display: flex;
+    gap: 10px;
+  }
+  
+  .birthday-input {
+    flex: 1;
+    text-align: center;
+    padding: 0 5px;
+  }
+  
+  .details-button {
+    width: 100%;
+    padding: 14px 0;
+    background: #162D3A;
+    border-radius: 12px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-top: 20px;
+    cursor: pointer;
+  }
+  
+  .details-button div {
+    text-align: center;
+    color: white;
+    font-size: 16px;
+    font-family: 'Roboto', sans-serif;
+    font-weight: 700;
+    line-height: 16px;
+    letter-spacing: 0.16px;
+  }
+  
+  /* HIPAA Page Styles */
+  .hipaa-content {
+    position: absolute;
+    top: 150px;
+    left: 0;
+    width: 100%;
+    height: calc(100% - 150px - 90px);
+    overflow-y: auto;
+    padding: 0 20px;
+    box-sizing: border-box;
+    background: white;
+  }
+  
+  .hipaa-title {
+    font-family: 'Inter', sans-serif;
+    font-size: 30px;
+    font-weight: 600;
+    color: #0C1421;
+    text-align: center;
+    margin: 20px 0;
+    line-height: 1.2;
+  }
+  
+  .section-title {
+    font-family: 'Inter', sans-serif;
+    font-size: 20px;
+    font-weight: 700;
+    color: #313957;
+    margin-top: 20px;
+    margin-bottom: 10px;
+  }
+  
+  .section-text {
+    font-family: 'Inter', sans-serif;
+    font-size: 14px;
+    line-height: 1.5;
+    color: #313957;
+    margin-bottom: 10px;
+  }
+  
+  .hipaa-divider {
+    height: 1px;
+    background-color: #E0E0E0;
+    margin: 15px 0;
+    width: 100%;
+  }
+  
+  .bottom-space {
+    height: 90px;
+  }
+  
+  .hipaa-buttons {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
+    padding: 20px 24px;
+    box-sizing: border-box;
+    background-color: white;
+    border-top: 1px solid #E0E0E0;
+    height: 90px;
+    z-index: 10;
+  }
+  
+  .hipaa-button {
+    width: 149px;
+    height: 44px;
+    padding: 14px 0px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    border-radius: 12px;
+    border: none;
+    font-family: 'Roboto', sans-serif;
+    font-size: 16px;
+    font-weight: 700;
+    line-height: 100%;
+    letter-spacing: 0.16px;
+    cursor: pointer;
+  }
+  
+  .hipaa-button.agree {
+    background-color: #162D3A;
+    color: white;
+  }
+  
+  .hipaa-button.cancel {
+    background-color: #4E95D9;
+    color: white;
+  }
+  /* Tutorial page styles */
+  #tutorialPage2, #tutorialPage21, #tutorialPage22, #tutorialPage23, #tutorialPage24 {
     position: relative;
-    width: 390px;
-    height: 844px;
-    background: #FFF; /* white background below banner */
-    z-index: 9999;
+    width: 100%;
+    height: 100%;
+    background: white;
+    overflow: hidden;
   }
   
   /* Gradient Banner (370px tall) */
@@ -410,116 +680,131 @@ body {
     position: absolute;
     top: 0;
     left: 0;
-    width: 390px;
+    width: 100%;
     height: 370px;
     background: linear-gradient(180deg, #B478CF 0%, #8885D3 50%, #5D92D8 100%);
     display: flex;
     flex-direction: column;
     align-items: center;
-    justify-content: flex-end; /* push heading & dots to bottom if you prefer */
-    padding-bottom: 20px;      /* space under heading for dots */
+    justify-content: space-between;
+    padding: 20px 20px 30px 20px;
     box-sizing: border-box;
   }
+
+  .heading-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    flex-grow: 1;
+    width: 100%;
+  }
   
-  /* Big heading text (55px) in banner */
+  /* Big heading text in banner */
   .tutorial-heading {
-    color: #FFF;
+    color: white;
     font-family: 'Inter', sans-serif;
     font-size: 55px;
     font-weight: 700;
-    line-height: 1.6;  /* 160% => 88px line-height if you prefer explicit px */
+    line-height: 1.2;
     text-align: center;
-    letter-spacing: 0.55px;
-    margin-bottom: 20px; /* space above dots */
+    margin: 0;
+    padding: 0;
   }
+
+  .help-text {
+    margin-top: 10px;
+  }
+  
   
   /* Dots container */
   .tutorial-dots {
     display: flex;
-    gap: 8px;        /* space between dots */
+    gap: 8px;
     align-items: center;
     justify-content: center;
-  }
-  
-  /* Dot styling (12x12) */
-  .tutorial-dot {
-    width: 12px;
-    height: 12px;
-    flex-shrink: 0;
-  }
-  .tutorial-dot.active path {
-    fill: #BF7DDC; /* Purple fill for the active dot */
+    margin-top: auto;
   }
   
   /* White content area below the banner */
-  .tutorial-content {
+  .tutorial-content, .tutorial-content21, .tutorial-content22, .tutorial-content23 {
     position: absolute;
-    top: 370px;  /* below banner's 370px */
+    top: 370px;
     left: 0;
-    width: 390px;
-    min-height: calc(844px - 370px); /* leftover space */
-    background: #FFF;
+    width: 100%;
+    min-height: calc(100% - 370px);
+    background: white;
     text-align: center;
     padding: 20px;
     box-sizing: border-box;
-    padding-bottom: 120px;
-    overflow-y: auto; /* scroll if content is long */
+    padding-top: 10px;
+    margin-top: 0;
   }
   
   /* Main text styles */
   .tutorial-content p {
     color: #313957;
-    font-family: Inter, sans-serif;
+    font-family: 'Inter', sans-serif;
     font-size: 20px;
     font-weight: 400;
-    line-height: 1.6; /* 32px if you prefer explicit px */
+    line-height: 1.6;
     letter-spacing: 0.2px;
     margin-bottom: 16px;
   }
   
-  /* Highlight words (document, organize, communicate) */
+  /* Highlight words */
   .highlight {
     color: #B478CF;
     font-weight: 700;
   }
   
-  /* Tutorial Footer (SVG wave) at bottom */
-  .tutorial-footer {
+  /* Tutorial Footer at bottom */
+  /* .tutorial-footer {
     position: absolute;
     bottom: 0;
     left: 0;
-    width: 390px;
-    height: 79px; /* matches your SVG height */
-    overflow: hidden; /* if needed */
+    width: 100%;
+    padding: 0;
+    height: 79px;
     z-index: 999;
-  }
-  .tutorial-footer svg {
-    width: 390px;
-    height: 79px;
-  }
-  .tutorial-footer {
-    position: absolute; /* or relative, if you prefer */
+  } */
+   /* Update your tutorial-footer rule */
+   .tutorial-footer {
+    position: absolute; /* Change back to absolute */
     bottom: 0;
-    left: 0;
-    width: 390px;
+    left: 0; /* Reset positioning */
+    transform: none; /* Remove transform */
+    width: 100%;
     height: 79px;
-    z-index: 99; /* so it appears above the page background */
+    z-index: 999;
+    padding: 0;
+    margin: 0;
+  }
+  
+  .tutorial-footer svg {
+    width: 100%;
+    height: 100%;
+    display: block;
   }
   
   /* The .footer-nav holds 3 icons horizontally */
   .footer-nav {
     position: absolute;
-    bottom: 0; 
+    bottom: 0;
     left: 0;
     width: 100%;
     height: 79px;
     display: flex;
-    justify-content: space-around; /* space them out evenly */
+    justify-content: space-evenly;
     align-items: center;
+    z-index: 1000;
+    padding: 0 10;
+    margin: 0;
   }
   
   /* Generic style for each footer button */
   .footer-btn {
+    width: 33.33%;
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -528,118 +813,94 @@ body {
     font-family: 'Inter', sans-serif;
     font-size: 12px;
     text-decoration: none;
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
   }
   
-  /* Icon images*/
+  /* Icon images */
   .footer-btn img,
   .footer-btn svg {
-    width: 32px;  /* or 62.5px for the new-log? Adjust as needed */
+    width: 32px;
     height: 32px;
     margin-bottom: 4px;
   }
+  .footer-btn.main span {
+    display: none; /* Ensure it displays */
+    }
   
-  /* The special new-log icon from Figma using background-image */
+  /* The special new-log icon */
   .new-log-icon {
-    width: 40px;
-    height: 40px;
-    background: url('https://s3-alpha-sig.figma.com/img/11a3/030c/455bd8bac1b67754ad010d530aea5560?Expires=1742169600&Key-Pair-Id=APKAQ4GOSFWCW27IBOMQ&Signature=EFAeqzfBSIvNyst06KMJBbnGj2TXc3ypQ-Bsn0hhQo3bhpJuSf8Czx9chZgA4PBKdOdwMy~84fcyJRe3~CfjBOQV3Gn~xsC1aMtsG3FF7i6GF9nmcI4N9CmusBxDCqGdBRiPSAw2y5YiWlTxZliQFWu1wqGZrPiRyDkFKWzFEmJDIVRGmTBozIa1H2g0fasP8q54eI~LeW1dP9V0RGGptzRAM-WXxGEh05GAOPlA9PmnyOfDOqvnlBAsZh4ARtbwZhnTp6pawramykOi0b4nyr2WmA7PByX36H7~pmD~o3~kvrMw0kV7FaJJOeXPhiBpRhpfNtOB0i7EnarGVWcl9Q__') center/cover no-repeat;
-    /* shift it upward so it sits in the wave curve */
+    width: 62px;
+    height: 62px;
     position: relative;
-    top: -10px;
-    margin-bottom: 2px;
-    z-index: 999;
+    top: -20px;
+    display: flex;
+    flex-direction: column; /* Stack image and text vertically */
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+  }
+
+  /* Add text styling inside the icon */
+.new-log-icon .icon-text {
+    position: absolute;
+    bottom: 16px; /* Adjust this to position text at the bottom of the icon */
+    left: 0;
+    right: 0;
+    text-align: center;
+    color: white;
+    font-size: 11px;
+    font-family: 'Urbanist', sans-serif;
+    font-weight: 700;
+    line-height: 1;
+    letter-spacing: 0.16px;
+  }
+  
+  /* Add this for the image inside the new-log-icon */
+  .new-log-icon img {
+    width: 100%; /* 62px; */
+    height: 100%;   /*62px; */
+    object-fit: contain;
   }
   .footer-icon {
     width: 32px;
     height: 32px;
-    /* or any custom size you want */
-    margin-bottom: 4px; /* space between icon & text */
+    margin-bottom: 4px;
   }
   
-  
-  /* .footer-btn.main if you want the text also raised or styled differently */
+  /* Style for main button in footer nav */
   .footer-btn.main {
     position: relative;
-    bottom: 10px; /* raise the button group up into the wave */
-  }
-  /* Page container */
-#tutorialPage21 {
-    position: relative;
-    width: 390px;
-    height: 844px;
-    background: #FFF;
-    z-index: 9999;
-  }
-  
-  /* Re-use your .tutorial-banner from the previous page if desired,
-     or define new styles specifically for 2.1. */
-  .tutorial-banner {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 390px;
-    height: 370px;
-    background: linear-gradient(180deg, #B478CF 0%, #8885D3 50%, #5D92D8 100%);
+    bottom: 15px;
     display: flex;
     flex-direction: column;
     align-items: center;
-    justify-content: flex-end;
-    padding-bottom: 20px;
-    box-sizing: border-box;
-  }
-  
-  /* Big heading text for 2.1 */
-  .tutorial-heading {
-    color: #FFF;
-    font-family: 'Inter', sans-serif;
-    font-size: 55px;
-    font-weight: 700;
-    line-height: 1.6; /* or 160% */
     text-align: center;
-    letter-spacing: 0.55px;
-    margin-bottom: 20px; /* space above dots */
   }
   
-  /* If you want to highlight 'VitalStory' differently */
-  .logo-name {
-    text-decoration: underline;
-  }
-  
-  /* The dot container */
-  .tutorial-dots {
-    display: flex;
-    gap: 8px;
-    align-items: center;
-    justify-content: center;
-  }
-  
-  /* The content area below the banner */
-  .tutorial-content21 {
-    position: absolute;
-    top: 370px; /* below banner's height */
-    left: 0;
-    width: 390px;
-    height: calc(844px - 370px);
-    background: #FFF;
-    text-align: center;
-    padding: 20px;
-    box-sizing: border-box;
-    overflow-y: auto;
-  }
-  
-  /* Purple heading: "Log important health updates" */
+  /* Hide the text below the icon since it's now in the icon 
+  .footer-btn.main > span {
+    display: none;
+  } */
+
+  /* Content in tutorial pages 2.1, 2.2, 2.3 */
   .purple-heading {
-    width: 353px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 100%;
     margin: 0 auto 20px;
     color: #B478CF;
     font-family: 'Inter', sans-serif;
-    font-size: 25px;
+    font-size: 21px;
     font-weight: 700;
     line-height: 1.6;
     letter-spacing: 0.25px;
+    padding-top: 30px;
+    text-align: center;
   }
   
-  /* Black text: "Track symptoms..." */
   .black-text {
     color: #313957;
     font-family: 'Inter', sans-serif;
@@ -648,89 +909,1998 @@ body {
     line-height: 1.6;
     letter-spacing: 0.18px;
     margin-bottom: 30px;
+    text-align: center;
   }
   
-  /* The italic purple "New Log" word */
   .italic-purple {
     color: #9482D3;
     font-style: italic;
     font-weight: 700;
   }
   
-  /* Steps container */
-  .steps-container {
-    position: relative;
-    width: 100%;
-    height: 150px; /* adjust as needed */
-    margin-top: 20px;
+  /* Tutorial page 2.4 specific styles */
+  #tutorialPage24 {
+    background: linear-gradient(180deg, #B478CF 0%, #8885D3 50%, #5D92D8 100%);
   }
   
-  /* Step numbers "1", "2", "3" */
-  .step {
-    position: absolute;
-    font-family: 'Urbanist', sans-serif;
-    font-size: 60px;
-    font-weight: 600;
-    line-height: 75px; /* 125% of 60 is 75 */
-    letter-spacing: 1.2px;
+  .tutorial-content24 {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
     text-align: center;
-    width: 121px;
-    height: 81px;
+    width: 100%;
+    height: 100%;
+    padding: 20px;
   }
   
-  /* Step #1 in purple */
-  .step1 {
-    color: #B478CF;
-    left: 130px;  /* tweak the positions to line up how you want */
+  .tutorial-heading24 {
+    width: 342px;
+    color: white;
+    font-family: 'Inter', sans-serif;
+    font-size: 55px;
+    font-weight: 700;
+    line-height: 160%;
+    letter-spacing: 0.55px;
+    margin: 0 0 20px 0;
+  }
+  
+  .tutorial-subheading {
+    width: 342px;
+    color: white;
+    font-family: 'Inter', sans-serif;
+    font-size: 30px;
+    font-weight: 700;
+    line-height: 160%;
+    letter-spacing: 0.3px;
+    margin: 0;
+    padding: 0;
+    text-align: center;
+  }
+  /* Logo container */
+.logo-name {
+    width: 300px; /* Adjust to match the width shown in your reference */
+    margin: 0;
+    padding: 0;
+  }
+  /* Logo image in tutorial page 2.1 */
+  .logo-name img {
+    width: 100%;
+    height: auto;
+    margin: 0;
+    padding: 0;
+   }
+   /* New Health Log Page Styles */
+.health-log-container {
+    width: 100%;
+    height: 100%;
+    position: relative;
+    background: #9381D3;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    padding-top: 20px;
+    overflow: hidden;
+  }
+  
+  /* User Info Section */
+  .user-info {
+    position: absolute;
+    top: 61px;
+    left: 32px;
+    display: flex;
+    align-items: center;
+    text-align: left;
+  }
+  
+  .avatar {
+    width: 51px;
+    height: 51px;
+    border-radius: 50%;
+    border: 2px solid white;
+    object-fit: cover;
+  }
+  
+  .user-details {
+    margin-left: 12px;
+  }
+  
+  .user-name {
+    color: black;
+    font-size: 30px;
+    font-family: 'Urbanist', sans-serif;
+    font-weight: 600;
+    line-height: 37.50px;
+    letter-spacing: 0.60px;
+  }
+  
+  .page-title {
+    color: black;
+    font-size: 20px;
+    font-family: 'Urbanist', sans-serif;
+    font-weight: 600;
+    line-height: 25px;
+    letter-spacing: 0.40px;
+  }
+  
+  /* Menu Button */
+  .menu-button {
+    position: absolute;
+    top: 48px;
+    right: 32px;
+    width: 31px;
+    height: 31px;
+    cursor: pointer;
+  }
+  
+  /* Main Question */
+  .question {
+    width: 331px;
+    margin-top: 203px;
+    text-align: center;
+    color: white;
+    font-size: 40px;
+    font-family: 'Urbanist', sans-serif;
+    font-weight: 600;
+    line-height: 50px;
+    letter-spacing: 0.80px;
+  }
+  
+  .log-text1 {
+    width: 331px;
+    margin-top: 15px;
+    text-align: center;
+    color: white;
+    font-size: 18px;
+    font-family: 'Urbanist', sans-serif;
+    font-weight: 600;
+    line-height: 22.50px;
+    letter-spacing: 0.36px;
+  }
+  
+  /* Record Button */
+  .record-container {
+    margin-top: 40px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+  
+  .record-button {
+    width: 156px;
+    height: 156px;
+    object-fit: contain;
+    cursor: pointer;
+  }
+  
+  .record-text {
+    margin-top: 20px;
+    color: white;
+    font-size: 20px;
+    font-family: 'Urbanist', sans-serif;
+    font-weight: 700;
+    line-height: 25px;
+    letter-spacing: 0.40px;
+  }
+  
+  /* Toggle for Typing */
+  .toggle-container {
+    position: absolute;
+    bottom: 130px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+  }
+  
+  .toggle-label {
+    color: white;
+    font-size: 20px;
+    font-family: 'Urbanist', sans-serif;
+    font-weight: 700;
+    line-height: 25px;
+    letter-spacing: 0.40px;
+    margin-right: 15px;
+  }
+  
+  /* Toggle Switch */
+  .toggle-switch {
+    position: relative;
+    display: inline-block;
+    width: 36px;
+    height: 20px;
+  }
+  
+  .toggle-checkbox {
+    opacity: 0;
+    width: 0;
+    height: 0;
+  }
+  
+  .toggle-slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: #808080;
+    border-radius: 12px;
+    transition: .4s;
+  }
+  
+  .toggle-slider:before {
+    position: absolute;
+    content: "";
+    height: 16px;
+    width: 16px;
+    left: 2px;
+    bottom: 2px;
+    background-color: white;
+    border-radius: 50%;
+    transition: .4s;
+  }
+  
+  .toggle-checkbox:checked + .toggle-slider {
+    background-color: #7F56D9;
+  }
+  
+  .toggle-checkbox:checked + .toggle-slider:before {
+    transform: translateX(16px);
+  }
+  
+  /* Type Container (Slide-up) */
+  .type-container {
+    position: absolute;
+    bottom: -497px; /* Start offscreen - match height for smooth animation before -400*/
+    left: 0;
+    width: 100%;
+    height: 497px; /* Match the height in the Figma */
+    background: linear-gradient(180deg, #B579D0 0%, #AE7CD1 24%, #5A93D9 53%);
+    border-radius: 30px 30px 30px 30px;
+    box-shadow: 0px 4px 4px rgba(0, 0, 0, 0.25);
+    transition: bottom 0.3s ease-in-out;
+    z-index: 2000;
+    display: none; /* Initially hidden */
+    padding: 20px;
+    box-sizing: border-box;
+  }  
+
+  /* Close button styling */
+.close-button {
+    position: absolute;
+    top: 15px;
+    right: 15px;
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    padding: 0;
+  }
+  
+  .close-button img {
+    width: 20px;
+    height: 20px;
+  }
+  
+  /* Type box styling */
+  .type-box {
+    width: 326px;
+    height: 354px;
+    margin: 40px auto 20px;
+    border-radius: 8px;
+    border: 1px solid rgba(212, 215, 227, 0.5);
+    background: rgba(242.90, 246.53, 250.80, 0.20);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 15px;
+    box-sizing: border-box;
+  }
+  
+  /* Textarea styling */
+  .type-box textarea {
+    width: 100%;
+    height: 100%;
+    background: transparent;
+    border: none;
+    resize: none;
+    color: white;
+    font-family: 'Urbanist', sans-serif;
+    font-size: 30px;
+    font-weight: 700;
+    line-height: 37.5px;
+    letter-spacing: 0.6px;
+    outline: none;
+    padding: 10px;
+  }
+  
+  .type-box textarea::placeholder {
+    color: white;
+    opacity: 1;
+  }
+  
+  /* Submit container */
+  .submit-container {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 15px;
+    margin-top: 20px;
+    padding-bottom: 30px;
+  }
+  
+  .submit-text {
+    color: white;
+    text-align: center;
+    font-family: 'Urbanist', sans-serif;
+    font-size: 20px;
+    font-weight: 700;
+    line-height: 25px;
+    letter-spacing: 0.4px;
+  }
+  
+  /* Submit button styling */
+  .submit-button {
+    width: 68px;
+    height: 68px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    cursor: pointer;
+    order: -1; /* Places the button before the text */
+    background: transparent;
+    border: none;
+    padding: 0;
+  }
+  
+  .submit-button img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+  }
+
+  /* Health Log Follow-up Page Styles */
+  #newHealthLogPage32 {
+    position: relative;
+    height: 100%;
+    overflow-x: hidden !important;
+    overflow-y: auto;
+    padding-bottom: 80px; /* Make space for footer */
+    }
+
+  #newHealthLogPage32 .tutorial-footer {
+      position: fixed !important;
+      bottom: 0 !important;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 100%;
+      max-width: 390px;
+      z-index: 999;
+  } 
+
+  /* Make sure footer nav items are positioned correctly */
+  #newHealthLogPage32 .footer-nav {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    height: 79px;
+    display: flex;
+    justify-content: space-evenly;
+    align-items: center;
+    z-index: 1001;
+    padding: 0 30px;
+  }
+  
+  /* Ensure the SVG maintains its dimensions */
+  #newHealthLogPage32 .tutorial-footer svg {
+    width: 100%;
+    height: 100%;
+    display: block;
+    position: absolute;
+    bottom: 0;
+    left: 0;
+  }  
+
+  #newHealthLogPage32 .footer-btn {
+    width: 33.33%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    cursor: pointer;
+    color: #313957;
+    font-family: 'Inter', sans-serif;
+    font-size: 12px;
+    text-decoration: none;
+    margin: 0;
+    padding: 0;
+  }
+
+  #newHealthLogPage32 .new-log-icon {
+    width: 62px;
+    height: 62px;
+    position: relative;
+    top: -20px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+  }
+
+  .followup-header {
+    width: 100%;
+    min-height: 120px;
+    padding: 15px;
+    background: white;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    position: relative;
+    box-sizing: border-box;
+    flex-shrink: 0;
+    z-index: 10;
+  }
+
+  .followup-content-area {
+    flex: 1;
+    overflow-y: auto !important;
+    overflow-x: hidden;
+    padding-bottom: 100px;
+    position: relative;
+    height: calc(100% - 120px) !important;
+    max-height: 664px;
+    
+  }
+  
+  .log-success-message {
+    padding: 0 15px;
+    margin-bottom: 15px;
+  }
+  
+  .success-heading {
+    color: black;
+    font-size: 22px;
+    font-family: 'Urbanist', sans-serif;
+    font-weight: 600;
+    line-height: 1.3;
+    letter-spacing: 0.50px;
+    margin-top: 20px;
+    margin-bottom: 12px;
+    text-align: left;
+    padding-left: 15px;
+  }
+  
+  .log-card {
+    width: 100%;
+    background: white;
+    border-radius: 14px;
+    box-shadow: 0px 4px 4px rgba(0, 0, 0, 0.25);
+    overflow: hidden;
+    margin-bottom: 20px;
+  }
+  
+  .log-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: #4E95D9;
+    padding: 6px 12px;
+    border-radius: 10px 10px 0 0;
+  }
+  
+  .log-card-title {
+    color: white;
+    font-size: 14px;
+    font-family: 'Urbanist', sans-serif;
+    font-weight: 700;
+  }
+  
+  .log-card-menu {
+    color: white;
+    font-size: 14px;
+    font-weight: bold;
+  }
+  
+  .log-card-content {
+    padding: 15px;
+    display: flex;
+    position: relative;
+  }
+  
+  .avatar.small {
+    width: 37px;
+    height: 37px;
+    border: 3px solid #20B5C4;
+    border-radius: 50%;
+  }
+  
+  .log-card-details {
+   /* margin-left: 15px;*/
+    flex: 1;
+  }
+  
+  .log-type {
+    color: black;
+    font-size: 14px;
+    font-family: 'Urbanist', sans-serif;
+    font-weight: 600;
+    line-height: 17.50px;
+    letter-spacing: 0.28px;
+    margin-bottom: 5px;
+  }
+  
+  .log-text {
+    color: black;
+    font-size: 12px;
+    font-family: 'Urbanist', sans-serif;
+    font-weight: 400;
+    line-height: 15px;
+    letter-spacing: 0.24px;
+    margin-bottom: 5px;
+    text-align: left;
+  }
+  
+ /* .log-author {
+    color: black;
+    font-size: 12px;
+    font-family: 'Urbanist', sans-serif;
+    font-weight: 400;
+    line-height: 11.25px;
+    letter-spacing: 0.18px;
+    text-align: left;  Align author name to the left 
+    width: auto;  Allow width to adjust to content 
+    margin-top: 5px;
+  } */
+  
+  .log-edit-button {
+    position: absolute;
+    top: 15px;
+    right: 15px;
+    color: #1DA1FA;
+    font-size: 10px;
+    font-family: 'Urbanist', sans-serif;
+    font-weight: 700;
+    line-height: 12.50px;
+    letter-spacing: 0.20px;
+  }
+  
+  .divider-line {
+    width: 100%;
+    height: 2px;
+    background: black;
+    margin: 20px 0;
+  }
+  
+  .followup-section {
+    padding: 0 20px;
+  }
+  
+  .followup-title {
+    color: black;
+    font-size: 25px;
+    font-family: 'Urbanist', sans-serif;
+    font-weight: 600;
+    line-height: 31.25px;
+    letter-spacing: 0.50px;
+    text-align: center;
+    margin-bottom: 10px;
+  }
+  
+  .followup-description {
+    color: black;
+    font-size: 12px;
+    font-family: 'Urbanist', sans-serif;
+    font-weight: 400;
+    line-height: 15px;
+    letter-spacing: 0.24px;
+    text-align: center;
+    margin-bottom: 20px;
+  }
+  
+  .question-cards-container {
+   /* width: 100%;
+    position: relative;
+    overflow: hidden;*/
+    width: 100%;
+    position: relative;
+    overflow: hidden;
+    height: auto; 
+    margin-bottom: 30px; /* Make space for the footer */
+    padding-bottom: 30px;
+  }
+  
+  .question-card-carousel {
+    display: flex;
+    transition: transform 0.3s ease-in-out;
+    padding: 0;
+    width: fit-content; /* Allow carousel to be wider than container */
+  }
+  
+  .question-card {
+    flex-shrink: 0;
+    width: 312px;
+    min-width: 312px;
+    margin-right: 20px; /* Keep only this for spacing */
+    background: rgba(255, 255, 255, 0.5);
+    box-shadow: 0px -2px 4px rgba(0, 0, 0, 0.25);
+    border-radius: 12px;
+    padding: 20px;
+    box-sizing: border-box;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .question-card:last-child {
+    margin-right: 0;
+  }
+  
+  .question-number {
+    color: black;
+    font-size: 50px; /*50*/
+    font-family: 'Urbanist', sans-serif;
+    font-weight: 600;
+    line-height: 62.50px;
+    letter-spacing: 1px;
+    margin-bottom: 10px; /*10*/
+  }
+  
+  .question-underline {
+    width: 60px;
+    height: 4px;
+    background: #B478CF;
+    margin-bottom: 30px; /*30*/
+  }
+  
+  .question-content {
+    color: black;
+    font-size: 16px;
+    font-family: 'Urbanist', sans-serif;
+    font-weight: 600;
+    line-height: 20px;
+    letter-spacing: 0.32px;
+    text-align: center;
+    margin-bottom: 30px;
+  }
+  
+  .question-type-button {
+    width: 130px;
+    height: 130px;
+    margin: 15px auto;
+    position: relative;
+    cursor: pointer;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+
+  .question-type-button img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+  }
+  
+  
+  .question-type-text {
+    position: absolute;
+    color: white;
+    font-size: 20px;
+    font-family: 'Urbanist', sans-serif;
+    font-weight: 700;
+    line-height: 25px;
+    letter-spacing: 0.40px;
+    z-index: 2;
+    top: 70%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    text-align: center;
+  }
+  
+  .question-button-container {
+    display: flex;
+    justify-content: space-between;
+    margin-top: auto;
+    padding: 0 15px;
+  }
+  
+  .question-button {
+    width: 103px;
+    height: 28px;
+    background: #B478CF;
+    border-radius: 14px;
+    border: 1px solid black;
+    color: white;
+    font-size: 16px;
+    font-family: 'Urbanist', sans-serif;
+    font-weight: 700;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    cursor: pointer;
+  }
+  
+  .question-button.no {
+    background: #9482D3;
+  }
+  
+  .question-close {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    width: 20px;
+    height: 20px;
+    cursor: pointer;
+  }
+  
+  .question-nav-buttons {
+    position: absolute;
+    top: 50%;
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
+    padding: 0 10px;
+    box-sizing: border-box;
+    transform: translateY(-50%);
+    z-index: 2;
+  }
+  
+  .question-nav-button {
+    width: 30px;
+    height: 30px;
+    background: rgba(255, 255, 255, 0.5);
+    border-radius: 50%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    cursor: pointer;
+  }
+  
+  /* Type Modal */
+  .type-modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 9999;
+  }
+  
+  .type-modal.hidden {
+    display: none;
+  }
+  
+  .type-modal-content {
+    width: 90%;
+    max-width: 350px;
+    background: white;
+    border-radius: 15px;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+  }
+  
+  .type-modal-header {
+    padding: 15px;
+    background: #f0f0f0;
+    position: relative;
+  }
+  
+  .type-modal-question {
+    color: black;
+    font-size: 16px;
+    font-family: 'Urbanist', sans-serif;
+    font-weight: 600;
+    text-align: center;
+    padding-right: 20px;
+  }
+  
+  .close-modal-button {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 5px;
+  }
+  
+  .close-modal-button img {
+    width: 15px;
+    height: 15px;
+  }
+  
+  .type-modal-body {
+    padding: 15px;
+  }
+  
+  .type-modal-body textarea {
+    width: 100%;
+    height: 150px;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    padding: 10px;
+    font-family: 'Urbanist', sans-serif;
+    font-size: 14px;
+    resize: none;
+  }
+  
+  .type-modal-footer {
+    padding: 15px;
+    display: flex;
+    justify-content: center;
+  }
+  
+  .submit-modal-button {
+    background: #B478CF;
+    color: white;
+    border: none;
+    border-radius: 20px;
+    padding: 10px 30px;
+    font-family: 'Urbanist', sans-serif;
+    font-weight: 700;
+    font-size: 16px;
+    cursor: pointer;
+  }
+
+  /* Thank you message card styles */
+    .question-card.thanked {
+    background: linear-gradient(180deg, #B579D0 0%, #AE7CD1 24%, #5A93D9 53%) !important;
+    transition: background 0.3s ease;
+  }
+  
+  .thank-you-message {
+    text-align: center;
+    color: white;
+    font-size: 30px;
+    font-family: 'Urbanist', sans-serif;
+    font-weight: 700;
+    line-height: 37.50px;
+    letter-spacing: 0.60px;
+    margin: 15px 0;
+    padding: 0 20px;
+    animation: fadeIn 0.5s ease-in;
+  }
+
+  /* Additional details section styles */
+.additional-details-title {
+    width: 334px;
+    margin-left: 35px;
+    margin-top: 15px;
+    margin-bottom: 10px;
+    color: black;
+    font-size: 14px;
+    font-family: 'Urbanist', sans-serif;
+    font-weight: 600;
+    line-height: 17.50px;
+    letter-spacing: 0.28px;
+  }
+
+  .additional-details-section {
+    margin-bottom: 20px;
+  }
+
+  /* Detail card styles */
+.detail-card {
+    width: 312px;
+    height: 56px;
+    margin-left: 44px;
+    margin-top: 10px;
+    margin-bottom: 10px;
+    background: rgba(255, 255, 255, 0.50);
+    box-shadow: 0px 4px 4px rgba(0, 0, 0, 0.25);
+    border-radius: 12px;
+    position: relative;
+    transition: box-shadow 0.2s ease;
+  }
+  
+  .detail-card:hover {
+    cursor: pointer;
+    box-shadow: 0px 6px 6px rgba(0, 0, 0, 0.3);
+  }
+  
+  .detail-card img {
+    width: 56px;
+    height: 56px;
+    position: absolute;
+    left: -17px;
     top: 0;
   }
   
-  /* Step #2 in blue (#5D92D8) */
-  .step2 {
-    color: #5D92D8;
-    left: 30px;
-    top: 20px;
-  }
-  
-  /* Step #3 in blue */
-  .step3 {
-    color: #5D92D8;
-    right: 30px;
-    top: 20px;
-  }
-  
-  /* Arrow icon and label "Here" */
-  .arrow-icon {
+  .detail-edit-button {
     position: absolute;
-    left: 155px; /* tweak to place arrow near the #1 icon */
-    top: 70px;
-    width: 34px;
-    height: 34px;
+    width: 36px;
+    height: 13px;
+    left: 38px;
+    top: 21px;
+    text-align: center;
+    color: white;
+    font-size: 8px;
+    font-family: 'Urbanist', sans-serif;
+    font-weight: 700;
+    line-height: 10px;
+    letter-spacing: 0.16px;
   }
   
-  /* just a normal <img> for the arrow:
-  .arrow-icon img {
-    width: 34px;
-    height: 34px;
-  }
-  */
-  
-  .arrow-label {
+  .detail-question {
+    width: 214px;
     position: absolute;
-    left: 145px;  /* near the arrow */
-    top: 105px;
-    width: 98px;
-    height: 37px;
-    color: #000;
-    font-family: 'Urbanist';
-    font-size: 15px;
+    left: 45px;
+    top: 6px;
+    color: black;
+    font-size: 12px;
+    font-family: 'Urbanist', sans-serif;
     font-weight: 600;
-    line-height: 1.25; /* 125% => 18.75px */
-    letter-spacing: 0.3px;
+    line-height: 15px;
+    letter-spacing: 0.24px;
+  }
+  
+  .detail-response {
+    width: 246px;
+    position: absolute;
+    left: 44px;
+    top: 25px;
+    color: black;
+    font-size: 12px;
+    font-family: 'Urbanist', sans-serif;
+    font-weight: 400;
+    line-height: 15px;
+    letter-spacing: 0.24px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  
+  .detail-edit-link {
+    position: absolute;
+    top: 6px;
+    right: 9px;
+    color: #1DA1FA;
+    font-size: 10px;
+    font-family: 'Urbanist', sans-serif;
+    font-weight: 700;
+    line-height: 12.50px;
+    letter-spacing: 0.20px;
+  }
+  
+  .detail-edit-button:hover, 
+  .detail-edit-link:hover {
+    text-decoration: underline;
+    cursor: pointer;
+  }
+
+  .app-menu {
+    position: absolute; /* Changed from fixed */
+    top: 0;
+    right: 0;
+    width: 100%; /* Take full width of the app container */
+    max-width: 390px; /* Match your app width */
+    height: 100%;
+    background-color: #4F4F4F;
+    z-index: 1000;
+    transition: transform 0.3s ease-in-out;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    transform: translateX(100%); /* Start off-screen */
+  }
+  
+  .app-menu.hidden {
+    transform: translateX(100%);
+    pointer-events: none;
+  }
+  
+  .app-menu.visible {
+    transform: translateX(0);
+    pointer-events: auto;
+    box-shadow: -5px 0 15px rgba(0, 0, 0, 0.25);
+  }
+  
+  .menu-header {
+    width: 100%;
+    height: 244px;
+    background-color: white;
+    position: relative;
+    padding-top: 57px; /* Based on Figma layout */
+  }
+  
+  .menu-close-button {
+    position: absolute;
+    width: 31px;
+    height: 31px;
+    right: 48px;
+    top: 48px;
+    cursor: pointer;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+  
+  .menu-close-button span {
+    width: 18.08px;
+    height: 12.92px;
+    outline: 2px black solid;
+    outline-offset: -1px;
+  }
+  
+  .menu-user-info {
+    display: flex;
+    position: relative;
+  }
+  
+  .menu-user-info .avatar {
+    width: 134px;
+    height: 134px;
+    position: absolute;
+    left: 16px;
+    border-radius: 50%;
+    border: 3px solid #20B5C4;
+  }
+  
+  .menu-user-details {
+    position: absolute;
+    left: 166px;
+  }
+  
+  .menu-user-details .user-name {
+    color: black;
+    font-size: 50px;
+    font-family: 'Urbanist', sans-serif;
+    font-weight: 600;
+    line-height: 62.50px;
+    letter-spacing: 1px;
+    word-wrap: break-word;
+    position: relative;
+    top: 7px; /* Adjusted to match Figma */
+  }
+  
+  .menu-user-details .user-family {
+    color: black;
+    font-size: 25px;
+    font-family: 'Urbanist', sans-serif;
+    font-weight: 600;
+    line-height: 31.25px;
+    letter-spacing: 0.50px;
+    word-wrap: break-word;
+    position: relative;
+    top: 71px; /* Adjusted to match Figma */
+  }
+  
+  .menu-items {
+    display: flex;
+    flex-direction: column;
+    padding: 0;
+    position: relative;
+    height: calc(100% - 244px - 100px); /* Subtracting header and logo heights */
+  }
+  
+  /* Individual menu items with exact positioning from Figma */
+  .menu-item {
+    position: absolute;
+    background-color: #B478CF;
+    box-shadow: 0px 4px 4px rgba(0, 0, 0, 0.25);
+    border-radius: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    height: 48px;
+  }
+  
+  .menu-item.profile {
+    width: 150px;
+    right: 16px;
+    top: 30px; /* Adjusted from Figma's 226px absolute position */
+  }
+  
+  .menu-item.doctors {
+    width: 177px;
+    right: 16px;
+    top: 98px; /* Adjusted from Figma's 294px absolute position */
+  }
+  
+  .menu-item.health-logs {
+    width: 216px;
+    right: 16px;
+    top: 166px; /* Adjusted from Figma's 362px absolute position */
+  }
+  
+  .menu-item.app-settings {
+    width: 250px;
+    right: 16px;
+    top: 234px; /* Adjusted from Figma's 430px absolute position */
+  }
+  
+  .menu-item.notifications {
+    width: 310px;
+    right: 16px;
+    top: 302px; /* Adjusted from Figma's 498px absolute position */
+  }
+  
+  .menu-text {
+    color: white;
+    font-size: 20px;
+    font-family: 'Urbanist', sans-serif;
+    font-weight: 700;
+    text-align: right; /* Text alignment from Figma */
+    word-wrap: break-word;
+  }
+  
+  .menu-footer {
+    position: absolute;
+    bottom: 20px;
+    left: 22px;
+    width: 359px;
+    height: 100px;
+  }
+  
+  .menu-logo {
+    color: white;
+    font-size: 75px;
+    font-family: 'Urbanist', sans-serif;
+    font-weight: 600;
+    line-height: 93.75px;
+    letter-spacing: 1.50px;
+    word-wrap: break-word;
+    position: relative;
+  }
+  
+  .copyright {
+    position: absolute;
+    width: 24px;
+    height: 24px;
+    right: 9px;
+    bottom: 0;
+    color: white;
+    font-size: 24px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+  
+  .page-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    z-index: 500;
+  }
+
+  /* Health History Page Styles */
+  #healthHistoryPage {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(180deg, white 57%, #4E95D9 100%);
+    overflow-y: auto;
+    padding-bottom: 90px;
+  }
+  #healthHistoryPage .tutorial-footer {
+    position: fixed !important;
+    bottom: 0 !important;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 100%;
+    max-width: 390px;
+    z-index: 999;
+  }
+  
+  
+  #healthHistoryPage .health-history-content {
+    padding-bottom: 100px; /* Extra padding to prevent content from being hidden behind footer */
+  }
+  
+  
+  /* Header styles */
+  .health-history-header {
+    width: 100%;
+    height: 114px;
+    background: linear-gradient(180deg, #B579D0 0%, #AE7CD1 24%, #5A93D9 53%);
+    position: relative;
+    display: flex;
+    align-items: center;
+    padding: 0 20px;
+  }
+  
+  .user-avatar-small {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    border: 2px solid white;
+  }
+  
+  .header-text {
+    margin-left: 10px;
+    display: flex;
+  }
+  
+  .hello-text {
+    color: white;
+    font-size: 30px;
+    font-family: 'Urbanist', sans-serif;
+    font-weight: 600;
+    line-height: 37.50px;
+    letter-spacing: 0.60px;
+    word-wrap: break-word;
+  }
+  
+  .user-name-text {
+    color: white;
+    font-size: 30px;
+    font-family: 'Urbanist', sans-serif;
+    font-weight: 600;
+    line-height: 37.50px;
+    letter-spacing: 0.60px;
+    word-wrap: break-word;
+    margin-left: 6px;
+  }
+  
+  .menu-button {
+    position: absolute;
+    right: 20px;
+    width: 31px;
+    height: 31px;
+    cursor: pointer;
+  }
+  
+  .menu-button img {
+    width: 18px;
+    height: 13px;
+    object-fit: contain;
+  }
+  
+  /* Content area styles */
+  .health-history-content {
+    padding: 16px;
+    padding-bottom: 100px; /* Space for footer */
+  }
+  
+  .history-title {
+    text-align: center;
+    color: black;
+    font-size: 25px;
+    font-family: 'Urbanist', sans-serif;
+    font-weight: 600;
+    line-height: 31.25px;
+    letter-spacing: 0.50px;
+    word-wrap: break-word;
+    margin-bottom: 16px;
+  }
+  .health-history-header .menu-button img {
+    width: 31px;  /* Increased size */
+    height: 31px;  /* Increased size */
+    object-fit: contain;
+  }
+  /* Search bar */
+  .search-container {
+    display: flex;
+    align-items: center;
+    background: white;
+    border-radius: 10px;
+    padding: 8px 16px;
+    margin-bottom: 20px;
+    box-shadow: 0px 4px 12px rgba(13, 10, 44, 0.06);
+  }
+  
+  .search-icon, .mic-icon {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 24px;
+    height: 24px;
+  }
+  
+  .search-input {
+    flex: 1;
+    border: none;
+    margin: 0 10px;
+    color: #ABB7C2;
+    font-size: 18px;
+    font-family: 'Poppins', sans-serif;
+    font-weight: 400;
+    outline: none;
+    background: transparent;
+  }
+  
+  .search-input::placeholder {
+    color: #ABB7C2;
+  }
+  
+  /* Filter buttons */
+  .filter-buttons {
+    display: flex;
+    justify-content: space-between;
+    gap: 4px;
+    margin-bottom: 20px;
+    overflow-x: auto;
+    padding-bottom: 5px;
+  }
+  
+  .filter-btn {
+    white-space: nowrap;
+    padding: 6px 10px;
+    background: #6E8CD6;
+    border-radius: 14px;
+    border: 1px solid black;
+    color: white;
+    font-size: 11px;
+    font-family: 'Urbanist', sans-serif;
+    font-weight: 700;
+    text-align: center;
+    min-width: 68px;
+  }
+  
+  .filter-btn.active {
+    background: #B478CF;
+    font-size: 12px;
+  }
+  
+  /* Month titles */
+  .month-title {
+    color: black;
+    font-size: 20px;
+    font-family: 'Urbanist', sans-serif;
+    font-weight: 600;
+    line-height: 25px;
+    letter-spacing: 0.40px;
+    word-wrap: break-word;
+    margin: 20px 0 15px 0;
+  }
+  
+  /* Health log cards */
+  .health-log-card {
+    position: relative;
+    display: flex;
+    align-items: center;
+    width: 100%;
+    height: 74px;
+    background: rgba(255, 255, 255, 0.50);
+    box-shadow: 0px 4px 4px rgba(0, 0, 0, 0.25);
+    border-radius: 12px;
+    margin-bottom: 20px;
+    padding-right: 16px;
+  }
+  
+  .log-avatar-container {
+    position: absolute;
+    left: -18px;
+    width: 76px;
+    height: 76px;
+    background: #DA8184;
+    border-radius: 50%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+  
+  .log-avatar {
+    width: 67px;
+    height: 67px;
+    border-radius: 50%;
+    border: 2px solid white;
+  }
+  
+  .log-content {
+    margin-left: 70px;
+    flex: 1;
+  }
+  
+  .log-date {
+    color: black;
+    font-size: 20px;
+    font-family: 'Urbanist', sans-serif;
+    font-weight: 600;
+    line-height: 25px;
+    letter-spacing: 0.40px;
+    word-wrap: break-word;
+    margin-bottom: 4px;
+  }
+  
+  .log-text {
+    color: black;
+    font-size: 13px;
+    font-family: 'Urbanist', sans-serif;
+    font-style: italic;
+    font-weight: 400;
+    line-height: 16.25px;
+    letter-spacing: 0.26px;
+    word-wrap: break-word;
+    max-width: 169px;
+  }
+  
+  .log-arrow {
+    margin-left: 10px;
+  }
+  
+  /* End of logs section */
+  .end-of-logs {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    margin-top: 30px;
+    position: relative;
+    padding-top: 30px;
+  }
+  
+  .end-of-logs:before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 290px;
+    height: 2px;
+    background-color: black;
+  }
+  
+  .end-icon {
+    width: 45px;
+    height: 45px;
+    margin-bottom: 6px;
+  }
+  
+  .end-text {
+    text-align: center;
+    color: black;
+    font-size: 30px;
+    font-family: 'Urbanist', sans-serif;
+    font-weight: 600;
+    line-height: 37.50px;
+    letter-spacing: 0.60px;
+    word-wrap: break-word;
+  }
+  
+  /* Footer styles */
+  .app-footer {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    height: 83px;
+    z-index: 50;
+  }
+  
+  .app-footer svg {
+    width: 100%;
+    height: 100%;
+    position: absolute;
+    bottom: 0;
+    left: 0;
+  }
+  
+  .footer-nav {
+    position: absolute;
+    bottom: 0;
+    width: 100%;
+    height: 79px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0 30px;
+  }
+  
+  .footer-btn {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    cursor: pointer;
+  }
+  
+  .footer-btn span {
+    color: #616161;
+    font-size: 12px;
+    font-family: 'Urbanist', sans-serif;
+    font-weight: 600;
+    line-height: 15px;
+    letter-spacing: 0.24px;
+  }
+  
+  .footer-btn.active span {
+    color: #B478CF;
+  }
+  
+  .footer-icon {
+    margin-bottom: 4px;
+  }
+  
+  .new-log-icon {
+    width: 62px;
+    height: 62px;
+    position: relative;
+    bottom: 20px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+  
+  .new-log-icon img {
+    width: 100%;
+    height: 100%;
+  }
+  
+  .icon-text {
+    position: absolute;
+    bottom: 16px;
+    color: white;
+    font-size: 8px;
+    font-family: 'Urbanist', sans-serif;
+    font-weight: 700;
+    line-height: 10px;
+    letter-spacing: 0.16px;
     text-align: center;
   }
   
-  /* Re-use your existing .tutorial-footer, .footer-nav, .footer-btn, .new-log-icon, etc. */
+  /* Active state for log cards */
+  .health-log-card:active {
+    background: rgba(230, 230, 230, 0.50);
+  }
+  
+  /* First log card in January should be slightly larger for January 8th */
+  h2.month-title + .health-log-card .log-date {
+    font-size: 22px;
+    line-height: 27.50px;
+    letter-spacing: 0.44px;
+  }
+
+    /* Fix for footer positioning across all pages */
+  .page {
+    position: relative;
+    min-height: 100%;
+  }
+  
+  /* Ensure content doesn't get hidden behind footer */
+  .question-cards-container {
+    margin-bottom: 90px;
+  }
+
+  /* Fix for footer staying within app bounds */
+
+/* Make the app wrapper establish a positioning context */
+.app-wrapper {
+    width: 390px;
+    height: 844px;
+    position: relative;
+    overflow: hidden;
+    background-color: white;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    margin: 0 auto;
+  }
+  
+  /* Fix for all footers to be positioned relative to app-wrapper */
+  .tutorial-footer, .app-footer {
+    position: absolute !important; /* Changed from fixed to absolute */
+    bottom: 0 !important;
+    left: 0 !important; /* Changed from 50% to 0 */
+    transform: none !important; /* Remove transform */
+    width: 100% !important;
+    z-index: 999;
+  }
+  
+  /* Fix specifically for problematic pages */
+  #newHealthLogPage32 .tutorial-footer,
+  #healthHistoryPage .tutorial-footer {
+    position: absolute !important;
+    bottom: 0 !important;
+    left: 0 !important;
+    transform: none !important;
+    width: 100% !important;
+  }
+  
+  /* Ensure content areas have proper padding */
+  #newHealthLogPage32 .followup-content-area, 
+  #healthHistoryPage .health-history-content {
+    padding-bottom: 90px !important;
+  }
+  
+  /* Fix height and scrolling for problematic pages */
+  #newHealthLogPage32, #healthHistoryPage {
+    overflow-y: auto;
+    height: 100%;
+    position: relative;
+  }
+  
+  /* Fix for bottom content margins */
+  #newHealthLogPage32 .question-cards-container, 
+  #newHealthLogPage32 .additional-details-section,
+  #healthHistoryPage .end-of-logs {
+    margin-bottom: 90px;
+  }
+    
+  /* Footer Positioning Fix for all pages */
+
+/* Create a consistent container structure for all pages */
+.page {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+  
+  /* Style for content areas that need to scroll */
+  .scrollable-content {
+    flex: 1;
+    overflow-y: auto;
+    padding-bottom: 90px; /* Space for footer */
+  }
+  
+  /* Fixed footer positioning for all pages */
+  .tutorial-footer {
+    position: absolute !important;
+    bottom: 0 !important;
+    left: 0 !important;
+    width: 100% !important;
+    height: 79px;
+    z-index: 999;
+  }
+  
+  /* Fix footer nav positioning */
+  .footer-nav {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    height: 79px;
+    display: flex;
+    justify-content: space-evenly;
+    align-items: center;
+    z-index: 1000;
+  }
+  
+  /* Specific fix for newHealthLogPage32 */
+  #newHealthLogPage32 {
+    overflow: hidden;
+  }
+  
+  #newHealthLogPage32 .followup-content-area {
+    overflow-y: auto;
+    height: calc(100% - 120px); /* Subtract header height */
+    padding-bottom: 90px; /* Space for footer */
+  }
+  
+  #newHealthLogPage32 .tutorial-footer {
+    position: absolute !important;
+    bottom: 0 !important;
+    left: 0 !important;
+    width: 100% !important;
+  }
+  
+  /* Specific fix for healthHistoryPage */
+  #healthHistoryPage {
+    overflow: hidden;
+  }
+  
+  #healthHistoryPage .health-history-content {
+    overflow-y: auto;
+    height: calc(100% - 114px); /* Subtract header height */
+    padding-bottom: 90px; /* Space for footer */
+  }
+  
+  #healthHistoryPage .tutorial-footer {
+    position: absolute !important;
+    bottom: 0 !important;
+    left: 0 !important;
+    width: 100% !important;
+  }
+  
+  /* Ensure the hipaaPage footer stays as the reference example */
+  #hipaaPage .hipaa-buttons {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    height: 90px;
+    z-index: 10;
+  }
+  
+  /* Fix for footer staying within app bounds */
+  .app-wrapper {
+    position: relative;
+    overflow: hidden;
+  }
+  
+  /* Make sure the new log icon stays visible and properly positioned */
+  .new-log-icon {
+    position: relative;
+    z-index: 1001;
+  }
+
+  /* Hide scrollbar but keep functionality for all content areas */
+  #healthHistoryPage .health-history-content,
+  #newHealthLogPage32 .followup-content-area,
+  .scrollable-content {
+    -ms-overflow-style: none;  /* Internet Explorer and Edge */
+    scrollbar-width: none;  /* Firefox */
+    overflow-y: auto;  /* Keep the scrolling functionality */
+  }
+
+    /* WebKit browsers (Chrome, Safari, newer versions of Opera) */
+  #healthHistoryPage .health-history-content::-webkit-scrollbar,
+  #newHealthLogPage32 .followup-content-area::-webkit-scrollbar,
+  .scrollable-content::-webkit-scrollbar {
+    display: none;  /* Hide scrollbar */
+    width: 0;  /* Remove width completely */
+  }
+
+  /* Prep Visit Page Styles */
+#prepVisitPage {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(180deg, white 57%, #EBF5FF 72%, #C5E3FF 100%);
+    overflow-y: auto;
+    padding-bottom: 90px;
+  }
+  
+  #prepVisitPage .tutorial-footer {
+    position: absolute !important;
+    bottom: 0 !important;
+    left: 0 !important;
+    transform: none !important;
+    width: 100% !important;
+    height: 79px;
+    z-index: 999;
+  }
+
+  #prepVisitPage .footer-nav {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    height: 79px;
+    display: flex;
+    justify-content: space-evenly;
+    align-items: center;
+    z-index: 1000;
+    padding: 0 30px;
+  }
+  
+  /* Header styles */
+  .prep-visit-header {
+    width: 100%;
+    height: 114px;
+    background: linear-gradient(180deg, #B579D0 0%, #AE7CD1 24%, #5A93D9 53%);
+    position: relative;
+    display: flex;
+    align-items: center;
+    padding: 0 20px;
+  }
+  .prep-visit-header .menu-button img {
+    width: 31px;  /* Increased size */
+    height: 31px;  /* Increased size */
+    object-fit: contain;
+  }
+  
+  /* Content area styles */
+  .prep-visit-content {
+    padding: 16px;
+    padding-bottom: 100px; /* Space for footer */
+  }
+  
+  .prep-title {
+    text-align: center;
+    color: black;
+    font-size: 25px;
+    font-family: 'Urbanist', sans-serif;
+    font-weight: 600;
+    line-height: 31.25px;
+    letter-spacing: 0.50px;
+    word-wrap: break-word;
+    margin: 20px 0;
+  }
+  
+  .user-avatar-container5 {
+    display: flex;
+    justify-content: center;
+    margin: 30px 0;
+  }
+  
+  .user-avatar5 {
+    width: 173px;
+    height: 173px;
+    object-fit: contain;
+  }
+  
+  .logs-title {
+    text-align: center;
+    color: black;
+    font-size: 30px;
+    font-family: 'Urbanist', sans-serif;
+    font-weight: 600;
+    line-height: 37.50px;
+    letter-spacing: 0.60px;
+    word-wrap: break-word;
+    margin-bottom: 10px;
+  }
+  
+  .logs-subtitle {
+    text-align: center;
+    color: black;
+    font-size: 15px;
+    font-family: 'Urbanist', sans-serif;
+    font-weight: 600;
+    line-height: 18.75px;
+    letter-spacing: 0.30px;
+    word-wrap: break-word;
+    margin-bottom: 20px;
+  }
+  
+  /* Filter buttons for visit */
+  .visit-filter-buttons {
+    display: flex;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 4px;
+    margin-bottom: 20px;
+    overflow-x: auto;
+    padding-bottom: 5px;
+  }
+  
+  .visit-filter-buttons .filter-btn {
+    white-space: nowrap;
+    padding: 6px 10px;
+    background: #6E8CD6;
+    border-radius: 14px;
+    border: 1px solid black;
+    color: white;
+    font-size: 11px;
+    font-family: 'Urbanist', sans-serif;
+    font-weight: 700;
+    text-align: center;
+    min-width: 68px;
+  }
+  
+  .visit-filter-buttons .filter-btn.active {
+    background: #9482D3;
+    font-size: 11px;
+  }
+  
+  /* Health log cards with checkboxes */
+  .health-log-card {
+    position: relative;
+    display: flex;
+    align-items: center;
+    width: 100%;
+    height: 74px;
+    background: rgba(255, 255, 255, 0.50);
+    box-shadow: 0px 4px 4px rgba(0, 0, 0, 0.25);
+    border-radius: 12px;
+    margin-bottom: 20px;
+    padding-right: 16px;
+  }
+  
+  .log-checkbox {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    margin-left: auto;
+    cursor: pointer;
+  }
+  
+  .checkbox {
+    width: 24px;
+    height: 24px;
+    margin-bottom: 4px;
+  }
+  
+  .add-log-text {
+    color: black;
+    font-size: 10px;
+    font-family: 'Urbanist', sans-serif;
+    font-weight: 700;
+    line-height: 12.50px;
+    letter-spacing: 0.20px;
+    word-wrap: break-word;
+    text-align: right;
+  }
+  
+  /* Prep Doctor's Notes Button */
+  .prep-notes-button {
+    width: 235px;
+    height: 82px;
+    background: #B478CF;
+    box-shadow: 0px 4px 4px rgba(0, 0, 0, 0.25);
+    border-radius: 20px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin: 40px auto;
+    cursor: pointer;
+  }
+  
+  .prep-notes-text {
+    color: white;
+    text-align: center;
+    font-size: 25px;
+    font-family: 'Urbanist', sans-serif;
+    font-weight: 700;
+    line-height: 31.25px;
+    letter-spacing: 0.50px;
+    word-wrap: break-word;
+  }
+
+  /* Hide scrollbar but keep functionality */
+  #prepVisitPage .prep-visit-content {
+    -ms-overflow-style: none;  /* Internet Explorer and Edge */
+    scrollbar-width: none;     /* Firefox */
+  }
+  
+  /* WebKit browsers (Chrome, Safari, newer versions of Opera) */
+  #prepVisitPage .prep-visit-content::-webkit-scrollbar {
+    display: none;  /* Hide scrollbar */
+    width: 0;       /* Remove width completely */
+  }
+  
+  /* Media queries for responsiveness */
+  @media (max-width: 390px) {
+    .visit-filter-buttons {
+      padding-right: 5px;
+      padding-left: 5px;
+    }
+    
+    .visit-filter-buttons .filter-btn {
+      min-width: 60px;
+      padding: 6px 8px;
+    }
+    
+    .log-text {
+      max-width: 150px;
+    }
+  }
+  /* Responsive adjustments */
+  @media (max-width: 390px) {
+    .filter-buttons {
+      padding-right: 5px;
+      padding-left: 5px;
+    }
+    
+    .filter-btn {
+      min-width: 60px;
+      padding: 6px 8px;
+    }
+    
+    .log-text {
+      max-width: 150px;
+    }
+  }
   
   
+  /* Animation */
+  @keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+
+  /* Media query for making sure app is centered on all devices */
+  @media (min-width: 400px) {
+    .app-wrapper {
+      box-shadow: 0 0 20px rgba(0,0,0,0.1);
+    }
+  }
+  
+  /* Media query for smaller mobile screens */
+  @media (max-width: 390px) {
+    .app-wrapper {
+      width: 100%;
+      height: 100vh;
+    }
+  }
+  
+  /* Media query for mobile devices */
+  @media (max-width: 390px) {
+    .tutorial-footer {
+      max-width: 100%;
+    }
+  }
   
