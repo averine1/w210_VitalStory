@@ -52,7 +52,7 @@ Respond ONLY with the JSON array and nothing else.
   return prompt;
 }
 async function callAPI(endpoint, method = 'GET', data = null) {
-  const API_URL = 'https://0oh0zinoi8.execute-api.us-west-2.amazonaws.com/vitalstory-apiendpoint/vitalstory';
+  const API_GATEWAY_URL = 'https://0oh0zinoi8.execute-api.us-west-2.amazonaws.com/vitalstory-apiendpoint/vitalstory';
   
   const options = {
     method: method,
@@ -63,31 +63,39 @@ async function callAPI(endpoint, method = 'GET', data = null) {
   };
   
   if (data && (method === 'POST' || method === 'PUT')) {
-    options.body = JSON.stringify(data);
+    // Format payload the same way as the Python code
+    const payload = { "inputs": data };
+    options.body = JSON.stringify(payload);
   }
   
   try {
-    const response = await fetch(`${API_URL}${endpoint}`, options);
+    const response = await fetch(`${API_GATEWAY_URL}${endpoint}`, options);
     
     if (!response.ok) {
-      // Log detailed error information
       const errorText = await response.text();
       console.error(`API call failed with status ${response.status}:`, errorText);
-      
-      // Throw a specific error with status
       throw new Error(`API call failed: ${response.status}`);
     }
     
-    return await response.json();
+    const responseData = await response.json();
+    
+    // Handle string responses that contain "vitalstory" - matches Python processing
+    if (typeof responseData === 'string' && responseData.toLowerCase().includes("vitalstory:")) {
+      const predictionStart = responseData.indexOf("Vitalstory:");
+      if (predictionStart !== -1) {
+        // Extract the prediction part similar to the Python code
+        const prediction = responseData.substring(predictionStart + "Vitalstory:".length).trim();
+        return { Prediction: prediction };
+      }
+    }
+    
+    return responseData;
   } catch (error) {
-    // Log the full error details
     console.error('Detailed API call error:', {
       name: error.name,
       message: error.message,
       stack: error.stack
     });
-    
-    // Rethrow the error to be caught by the calling function
     throw error;
   }
 }
@@ -155,29 +163,25 @@ async function getFollowUpQuestions(logText) {
   try {
     console.log("Attempting to get follow-up questions for log:", logText);
     
-    // Prepare the request data exactly like in the Streamlit example
-    const requestData = { inputs: logText };
-    console.log("Request data:", JSON.stringify(requestData));
+    // Prepare the request data exactly like in the Python code
+    const response = await callAPI('/followup', 'POST', logText);
     
-    // Use callAPI to make the request
-    const responseData = await callAPI('/followup', 'POST', requestData);
-    
-    console.log("Full API response:", responseData);
+    console.log("Full API response:", response);
     
     // Check for 'Prediction' key
-    if (responseData.Prediction) {
+    if (response.Prediction) {
       try {
         // Try to parse the Prediction
         let questions;
         
         // If Prediction is already an array, use it
-        if (Array.isArray(responseData.Prediction)) {
-          questions = responseData.Prediction;
+        if (Array.isArray(response.Prediction)) {
+          questions = response.Prediction;
         } 
         // If it's a string, try to parse it
-        else if (typeof responseData.Prediction === 'string') {
+        else if (typeof response.Prediction === 'string') {
           // Try to extract JSON from the string
-          const jsonMatch = responseData.Prediction.match(/\[[\s\S]*?\]/);
+          const jsonMatch = response.Prediction.match(/\[[\s\S]*?\]/);
           if (jsonMatch) {
             questions = JSON.parse(jsonMatch[0]);
           }
@@ -196,7 +200,7 @@ async function getFollowUpQuestions(logText) {
       }
     }
     
-    // Fallback to default questions if parsing fails
+    // Use fallback questions if needed
     return [
       {
         id: 1,
@@ -217,32 +221,7 @@ async function getFollowUpQuestions(logText) {
     
   } catch (error) {
     console.error('Error getting questions from API:', error);
-    
-    // Detailed error logging
-    console.error('Error details:', {
-      name: error.name,
-      message: error.message,
-      stack: error.stack
-    });
-    
-    // Return fallback questions if API call fails
-    return [
-      {
-        id: 1,
-        number: "01",
-        question: "How long have you been experiencing these symptoms?"
-      },
-      {
-        id: 2,
-        number: "02",
-        question: "Have you tried any medications for relief?"
-      },
-      {
-        id: 3,
-        number: "03",
-        question: "Have you noticed any patterns with your symptoms?"
-      }
-    ];
+    throw error;
   }
 }
 
