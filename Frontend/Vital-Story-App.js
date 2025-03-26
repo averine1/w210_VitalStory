@@ -52,7 +52,7 @@ Respond ONLY with the JSON array and nothing else.
   return prompt;
 }
 async function callAPI(endpoint, method = 'GET', data = null) {
-  const API_URL = 'https://0oh0zinoi8.execute-api.us-west-2.amazonaws.com/vitalstory-apiendpoint';
+  const API_URL = 'https://0oh0zinoi8.execute-api.us-west-2.amazonaws.com/vitalstory-apiendpoint/vitalstory';
   
   const options = {
     method: method,
@@ -70,36 +70,59 @@ async function callAPI(endpoint, method = 'GET', data = null) {
     const response = await fetch(`${API_URL}${endpoint}`, options);
     
     if (!response.ok) {
+      // Log detailed error information
+      const errorText = await response.text();
+      console.error(`API call failed with status ${response.status}:`, errorText);
+      
+      // Throw a specific error with status
       throw new Error(`API call failed: ${response.status}`);
     }
     
     return await response.json();
   } catch (error) {
-    console.error('API call error:', error);
+    // Log the full error details
+    console.error('Detailed API call error:', {
+      name: error.name,
+      message: error.message,
+      stack: error.stack
+    });
+    
+    // Rethrow the error to be caught by the calling function
     throw error;
   }
 }
 
-// Add this function to test follow-up questions
+
+/**
+ * Test follow-up questions generation
+ * @param {string} logText - The user's health log text
+ * @returns {Array} - Array of generated follow-up questions
+ */
 async function testFollowUpQuestions(logText) {
   try {
-    // Send the health log to the backend to generate follow-up questions
-    const response = await callAPI('/logs/followup', 'POST', {
-      logText: logText
-    });
+    console.log("Attempting to generate follow-up questions");
     
-    console.log('Generated follow-up questions:', response.questions);
+    // Generate follow-up questions
+    const questions = await getFollowUpQuestions(logText);
     
-    // If you want to display these questions immediately
-    if (response.questions && response.questions.length > 0) {
-      displayFollowUpQuestions(response.questions);
+    console.log('Generated follow-up questions:', questions);
+    
+    // Always log the source of questions
+    if (questions.length === 3 && questions[0].id === 1) {
+      console.warn('FALLBACK QUESTIONS USED');
     }
     
-    return response.questions;
+    // If questions are successfully generated, display them
+    if (questions && questions.length > 0) {
+      displayFollowUpQuestions(questions);
+    }
+    
+    return questions;
   } catch (error) {
-    console.error('Failed to generate follow-up questions:', error);
-    // Fall back to default questions for testing
-    return [
+    console.error('Completely failed to generate follow-up questions:', error);
+    
+    // Fallback to hardcoded default questions
+    const defaultQuestions = [
       {
         id: 1,
         number: "01",
@@ -116,33 +139,64 @@ async function testFollowUpQuestions(logText) {
         question: "Any nausea?"
       }
     ];
+    
+    console.warn('USING HARDCODED DEFAULT QUESTIONS');
+    displayFollowUpQuestions(defaultQuestions);
+    return defaultQuestions;
   }
 }
+
 /**
- * Gets follow-up questions from the backend API based on the health log
+ * Gets follow-up questions from the AI model based on the health log text
  * @param {string} logText - The user's health log text
- * @returns {Array} - Array of question objects
+ * @returns {Array} - Array of generated follow-up questions
  */
 async function getFollowUpQuestions(logText) {
   try {
-    // Create the prompt for the AI model
-    const prompt = generateFollowUpQuestionsPrompt(logText);
+    console.log("Attempting to get follow-up questions for log:", logText);
     
-    // Send to your Lambda API
-    const response = await callAPI('/generate-questions', 'POST', {
-      prompt: prompt,
-      logText: logText  // You might still want to send the original text too
-    });
+    // Prepare the request data exactly like in the Streamlit example
+    const requestData = { inputs: logText };
+    console.log("Request data:", JSON.stringify(requestData));
     
-    // Parse the response from the model
-    // If your Lambda already returns properly formatted JSON:
-    return response.questions;
+    // Use callAPI to make the request
+    const responseData = await callAPI('/followup', 'POST', requestData);
     
-    // If your Lambda returns the raw model output as a string:
-    // return JSON.parse(response.modelOutput);
-  } catch (error) {
-    console.error('Error generating follow-up questions:', error);
-    // Fallback questions if the API call fails
+    console.log("Full API response:", responseData);
+    
+    // Check for 'Prediction' key
+    if (responseData.Prediction) {
+      try {
+        // Try to parse the Prediction
+        let questions;
+        
+        // If Prediction is already an array, use it
+        if (Array.isArray(responseData.Prediction)) {
+          questions = responseData.Prediction;
+        } 
+        // If it's a string, try to parse it
+        else if (typeof responseData.Prediction === 'string') {
+          // Try to extract JSON from the string
+          const jsonMatch = responseData.Prediction.match(/\[[\s\S]*?\]/);
+          if (jsonMatch) {
+            questions = JSON.parse(jsonMatch[0]);
+          }
+        }
+        
+        // Validate and format questions
+        if (questions && questions.length >= 3) {
+          return questions.slice(0, 3).map((q, index) => ({
+            id: index + 1,
+            number: String(index + 1).padStart(2, '0'),
+            question: typeof q === 'object' ? q.question : q
+          }));
+        }
+      } catch (parseError) {
+        console.error('Error parsing Prediction:', parseError);
+      }
+    }
+    
+    // Fallback to default questions if parsing fails
     return [
       {
         id: 1,
@@ -157,11 +211,42 @@ async function getFollowUpQuestions(logText) {
       {
         id: 3,
         number: "03",
-        question: "Have you noticed any triggers or patterns with your symptoms?"
+        question: "Have you noticed any patterns with your symptoms?"
+      }
+    ];
+    
+  } catch (error) {
+    console.error('Error getting questions from API:', error);
+    
+    // Detailed error logging
+    console.error('Error details:', {
+      name: error.name,
+      message: error.message,
+      stack: error.stack
+    });
+    
+    // Return fallback questions if API call fails
+    return [
+      {
+        id: 1,
+        number: "01",
+        question: "How long have you been experiencing these symptoms?"
+      },
+      {
+        id: 2,
+        number: "02",
+        question: "Have you tried any medications for relief?"
+      },
+      {
+        id: 3,
+        number: "03",
+        question: "Have you noticed any patterns with your symptoms?"
       }
     ];
   }
 }
+
+
 // Function to display the follow-up questions in the UI
 function displayFollowUpQuestions(questions) {
   const carousel = document.querySelector('.question-card-carousel');
@@ -223,6 +308,8 @@ function initializeApp() {
   addMenuToApp();
 
   addMenuButtonListeners();
+
+  setupMenuToggleListeners();
 
   // Update user info
   updateHealthHistoryUserInfo();
@@ -417,6 +504,7 @@ function setupHealthHistoryFooterButtons() {
   console.log("Health History footer buttons initialized");
 }
   // Setup tutorial page transitions
+
 function setupTutorialPageTransitions() {
   const tutorialPage21 = document.getElementById("tutorialPage21");
   if (tutorialPage21) {
@@ -439,20 +527,23 @@ function setupTutorialPageTransitions() {
     });
   }
 
-  // Setup the "New Log" buttons in tutorial footer to go to the new health log page
+  // Setup the "New Log" buttons to work from any page
   const newLogButtons = document.querySelectorAll(".footer-btn.main");
   newLogButtons.forEach(button => {
     button.addEventListener("click", function() {
       console.log("New Log button clicked");
       
-      // Find the active tutorial page
-      const activeTutorialPage = document.querySelector('.page.visible[id^="tutorialPage"]');
-      if (activeTutorialPage) {
-        transitionPages(activeTutorialPage.id, "newHealthLogPage");
+      // Find the current visible page
+      const currentPage = document.querySelector('.page.visible');
+      
+      if (currentPage) {
+        // Transition to the new health log page from the current page
+        transitionPages(currentPage.id, "newHealthLogPage");
       }
     });
   });
-}
+}  
+
 // Add this to your existing page transition setup
 function setupPrepVisitTransition() {
   // Find all prep visit buttons in footers across the app
@@ -464,11 +555,17 @@ function setupPrepVisitTransition() {
     if (buttonText.includes('Prep Visit')) {
       button.addEventListener('click', function() {
         console.log("Prep Visit button clicked");
+        
+        // Debug: Check if logs exist in session storage
+        const logs = JSON.parse(sessionStorage.getItem("healthLogs") || "[]");
+        console.log("Current logs in sessionStorage:", logs.length, logs);
+        
         const currentPage = document.querySelector('.page.visible');
         if (currentPage && currentPage.id !== "prepVisitPage") {
           transitionPages(currentPage.id, "prepVisitPage");
           // Initialize the page after transition
           setTimeout(() => {
+            console.log("About to initialize prep visit page");
             initializePrepVisitPage();
           }, 100);
         }
@@ -476,7 +573,6 @@ function setupPrepVisitTransition() {
     }
   });
 }
-
 
   // Generic function to transition between pages
 function transitionPages(fromPageId, toPageId) {
@@ -539,7 +635,7 @@ function updateAllAvatars() {
   console.log("Updating all avatar images throughout the app");
   
   // Get stored avatar or use default
-  const storedAvatar = localStorage.getItem("selectedAvatar") || "https://placehold.co/103x103";
+  const storedAvatar = sessionStorage.getItem("selectedAvatar") || "https://placehold.co/103x103";
   console.log("Using avatar:", storedAvatar);
   
   // List of all avatar elements in the app
@@ -593,7 +689,7 @@ function updateAllAvatars() {
 // Then, add the updateUserNames function right after it
 function updateUserNames() {
   // Get stored name or use default
-  const storedName = localStorage.getItem("userName") || "James Quinn";
+  const storedName = sessionStorage.getItem("userName") || "James Quinn";
   const firstName = storedName.split(" ")[0];
   const lastName = storedName.split(" ")[1] || "";
   
@@ -647,7 +743,7 @@ function selectAvatar(imgUrl) {
   console.log("Avatar selected:", imgUrl);
   
   // Store the selected avatar URL
-  localStorage.setItem("selectedAvatar", imgUrl);
+  sessionStorage.setItem("selectedAvatar", imgUrl);
   
   // Update all avatars in the app
   updateAllAvatars();
@@ -662,8 +758,8 @@ function saveUserInfo() {
   const lastName = document.getElementById('lastName')?.value || 'Quinn';
   const fullName = `${firstName} ${lastName}`;
   
-  // Save to localStorage
-  localStorage.setItem('userName', fullName);
+  // Save to sessionStorage
+  sessionStorage.setItem('userName', fullName);
   console.log('User info saved:', fullName);
   
   // Update welcome name on details page
@@ -673,17 +769,17 @@ function saveUserInfo() {
 // Update welcome message on details page
 function updateWelcomeName() {
   const welcomeName = document.getElementById('welcomeName');
-  const storedName = localStorage.getItem('userName') || 'James Quinn';
+  const storedName = sessionStorage.getItem('userName') || 'James Quinn';
   
   if (welcomeName) {
     welcomeName.innerText = `Welcome ${storedName} 👋`;
   }
 }
 
-// Load user data from localStorage
+// Load user data from sessionStorage
 function loadUserData() {
   // Load avatar
-  const storedAvatar = localStorage.getItem("selectedAvatar") || "https://placehold.co/103x103";
+  const storedAvatar = sessionStorage.getItem("selectedAvatar") || "https://placehold.co/103x103";
   
   // Update all avatars with a centralized function
   updateAllAvatars();
@@ -874,6 +970,7 @@ function initializePrepVisitPage() {
 
   // Display user's actual logs
   displayPrepVisitLogs();
+
   
   console.log("Prep Visit page initialized");
 }
@@ -891,8 +988,8 @@ function initializeNewHealthLogPage() {
   
   if (userAvatar && userName) {
     // Get stored user data
-    const storedAvatar = localStorage.getItem("selectedAvatar") || "https://placehold.co/51x51";
-    const storedName = localStorage.getItem("userName") || "James";
+    const storedAvatar = sessionStorage.getItem("selectedAvatar") || "https://placehold.co/51x51";
+    const storedName = sessionStorage.getItem("userName") || "James";
     
     // Update UI
     userAvatar.src = storedAvatar;
@@ -903,20 +1000,20 @@ function initializeNewHealthLogPage() {
  }
  function saveNewHealthLog(logText) {
   // Get existing logs or create empty array
-  const existingLogs = JSON.parse(localStorage.getItem("healthLogs") || "[]");
+  const existingLogs = JSON.parse(sessionStorage.getItem("healthLogs") || "[]");
   
   // Create new log entry
   const newLog = {
     date: new Date().toISOString(),
     text: logText,
-    avatar: localStorage.getItem("selectedAvatar") || "https://placehold.co/67x67"
+    avatar: sessionStorage.getItem("selectedAvatar") || "https://placehold.co/67x67"
   };
   
   // Add new log to the beginning of array (newest first)
   existingLogs.unshift(newLog);
   
   // Save updated logs
-  localStorage.setItem("healthLogs", JSON.stringify(existingLogs));
+  sessionStorage.setItem("healthLogs", JSON.stringify(existingLogs));
   
   console.log("Health log saved:", newLog);
 }
@@ -939,7 +1036,7 @@ function initializeHealthHistoryPage() {
     }
   });
   
-  // Now display dynamic logs from localStorage
+  // Now display dynamic logs from sessionStorage
   displayHealthLogs();
 
   // Set up event listeners for the page
@@ -951,7 +1048,7 @@ function initializeHealthHistoryPage() {
 // Add this to initializeHealthHistoryPage function
 function displayHealthLogs() {
   const healthLogsContainer = document.querySelector('.health-history-content');
-  const existingLogs = JSON.parse(localStorage.getItem("healthLogs") || "[]");
+  const existingLogs = JSON.parse(sessionStorage.getItem("healthLogs") || "[]");
   
   // If no logs yet, show a message
   if (existingLogs.length === 0) {
@@ -1032,36 +1129,58 @@ function displayHealthLogs() {
 }
 
 // Function to display user logs on the Prep Visit page
+// Updated displayPrepVisitLogs function to show actual logs and update user avatar
 function displayPrepVisitLogs() {
+  console.log("Displaying prep visit logs");
+  
   const prepVisitContent = document.querySelector('.prep-visit-content');
-  const existingLogs = JSON.parse(localStorage.getItem("healthLogs") || "[]");
-  
-  // Get the container for logs (after the filter buttons and before the prep notes button)
-  const filterButtons = document.querySelector('.visit-filter-buttons');
-  const prepNotesButton = document.querySelector('.prep-notes-button');
-  
-  // Clear any existing log cards (placeholders)
-  const elementsToRemove = [];
-  let monthTitleFound = false;
-  let currentElement = filterButtons.nextElementSibling;
-  
-  while (currentElement && currentElement !== prepNotesButton) {
-    elementsToRemove.push(currentElement);
-    currentElement = currentElement.nextElementSibling;
+  if (!prepVisitContent) {
+    console.error("Prep visit content area not found");
+    return;
   }
   
-  // Remove the elements
-  elementsToRemove.forEach(element => element.remove());
+  // Find the prep notes button to use as a reference point
+  const prepNotesButton = document.querySelector('.prep-notes-button');
+  if (!prepNotesButton) {
+    console.error("Prep notes button not found");
+    return;
+  }
+  
+  // IMPORTANT: Remove all existing month titles and log cards first
+  // This removes the hardcoded examples from the HTML
+  const monthTitles = document.querySelectorAll('.month-title');
+  const logCards = document.querySelectorAll('.health-log-card');
+  
+  console.log(`Found ${monthTitles.length} existing month titles and ${logCards.length} existing log cards to remove`);
+  
+  // Remove all existing month titles and log cards
+  monthTitles.forEach(title => title.remove());
+  logCards.forEach(card => card.remove());
+  
+  // Get user's avatar
+  const storedAvatar = sessionStorage.getItem("selectedAvatar") || "https://placehold.co/67x67";
+  
+  // Get logs from sessionStorage only
+  let existingLogs = [];
+  try {
+    existingLogs = JSON.parse(sessionStorage.getItem("healthLogs") || "[]");
+    console.log(`Found ${existingLogs.length} logs to display from sessionStorage:`, existingLogs);
+  } catch (error) {
+    console.error("Error parsing logs:", error);
+    existingLogs = [];
+  }
   
   // If no logs yet, show a message
-  if (existingLogs.length === 0) {
+  if (!existingLogs || existingLogs.length === 0) {
+    console.log("No logs found in sessionStorage");
     const noLogsMsg = document.createElement('div');
     noLogsMsg.style.textAlign = 'center';
     noLogsMsg.style.margin = '40px 0';
     noLogsMsg.style.color = 'black';
     noLogsMsg.style.fontFamily = 'Urbanist, sans-serif';
     noLogsMsg.style.fontSize = '18px';
-    noLogsMsg.innerHTML = 'No health logs found.<br>Create a new log to prepare for your visit.';
+    noLogsMsg.style.fontWeight = '600';
+    noLogsMsg.innerHTML = 'No user logs found.<br>Create a new log to prepare for your visit.';
     prepVisitContent.insertBefore(noLogsMsg, prepNotesButton);
     return;
   }
@@ -1070,17 +1189,40 @@ function displayPrepVisitLogs() {
   const logsByMonth = {};
   
   existingLogs.forEach(log => {
-    const date = new Date(log.date);
-    const monthYear = `${date.toLocaleString('default', { month: 'long' })} ${date.getFullYear()}`;
-    
-    if (!logsByMonth[monthYear]) {
-      logsByMonth[monthYear] = [];
+    try {
+      const date = new Date(log.date);
+      if (isNaN(date.getTime())) {
+        console.error("Invalid date in log:", log);
+        return;
+      }
+      
+      const monthYear = `${date.toLocaleString('default', { month: 'long' })} ${date.getFullYear()}`;
+      
+      if (!logsByMonth[monthYear]) {
+        logsByMonth[monthYear] = [];
+      }
+      logsByMonth[monthYear].push(log);
+    } catch (error) {
+      console.error("Error processing log:", log, error);
     }
-    logsByMonth[monthYear].push(log);
   });
+  
+  console.log("Logs grouped by month:", logsByMonth);
+  
+  // Get selected logs from storage
+  let selectedLogs = [];
+  try {
+    selectedLogs = JSON.parse(sessionStorage.getItem("selectedLogs") || "[]");
+    console.log(`Found ${selectedLogs.length} previously selected logs`);
+  } catch (error) {
+    console.error("Error parsing selected logs:", error);
+    selectedLogs = [];
+  }
   
   // Display logs by month
   Object.keys(logsByMonth).forEach(monthYear => {
+    console.log(`Creating section for ${monthYear} with ${logsByMonth[monthYear].length} logs`);
+    
     // Create month title
     const monthTitle = document.createElement('h2');
     monthTitle.className = 'month-title';
@@ -1089,35 +1231,138 @@ function displayPrepVisitLogs() {
     
     // Create log cards for this month
     logsByMonth[monthYear].forEach(log => {
-      const date = new Date(log.date);
-      const formattedDate = `${date.toLocaleString('default', { month: 'long' })} ${date.getDate()}${getOrdinalSuffix(date.getDate())}, ${date.getFullYear()}`;
-      
-      const logCard = document.createElement('div');
-      logCard.className = 'health-log-card';
-      logCard.innerHTML = `
-        <div class="log-avatar-container">
-          <img src="${log.avatar}" alt="User" class="log-avatar">
-        </div>
-        <div class="log-content">
-          <h3 class="log-date">${formattedDate}</h3>
-          <p class="log-text">${truncateText(log.text, 60)}</p>
-        </div>
-        <div class="log-checkbox">
-          <div class="checkbox">
+      try {
+        const date = new Date(log.date);
+        const formattedDate = `${date.toLocaleString('default', { month: 'long' })} ${date.getDate()}${getOrdinalSuffix(date.getDate())}, ${date.getFullYear()}`;
+        
+        // Create a unique ID for this log based on date and text
+        const logId = `${date.toISOString()}-${log.text.substring(0, 20).replace(/[^a-zA-Z0-9]/g, '')}`;
+        
+        // Check if this log was previously selected
+        const isSelected = selectedLogs.includes(logId);
+        
+        const logCard = document.createElement('div');
+        logCard.className = 'health-log-card';
+        logCard.dataset.logId = logId;
+        
+        // Create checkbox HTML with correct initial state
+        const checkboxHtml = isSelected ? 
+          `<div class="checkbox checked">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <rect x="0.5" y="0.5" width="23" height="23" rx="3.5" fill="#12B28C"/>
+              <path d="M7 12L10 15L17 8" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </div>` :
+          `<div class="checkbox">
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
               <rect x="0.5" y="0.5" width="23" height="23" rx="3.5" stroke="#AEAEB2"/>
             </svg>
+          </div>`;
+        
+        // Use the user's actual avatar from storage, or the log's avatar if available
+        const avatarSrc = log.avatar || storedAvatar;
+        
+        logCard.innerHTML = `
+          <div class="log-avatar-container">
+            <img src="${avatarSrc}" alt="User" class="log-avatar">
           </div>
-          <div class="add-log-text">Add<br/>Health Log</div>
-        </div>
-      `;
-      
-      prepVisitContent.insertBefore(logCard, prepNotesButton);
+          <div class="log-content">
+            <h3 class="log-date">${formattedDate}</h3>
+            <p class="log-text">${truncateText(log.text, 60)}</p>
+          </div>
+          <div class="log-checkbox">
+            ${checkboxHtml}
+            <div class="add-log-text">Add<br/>Health Log</div>
+          </div>
+        `;
+        
+        prepVisitContent.insertBefore(logCard, prepNotesButton);
+        console.log(`Created log card for ${formattedDate}`);
+      } catch (error) {
+        console.error("Error creating log card:", log, error);
+      }
     });
   });
   
-  // Setup checkbox functionality
-  setupPrepVisitEventListeners();
+  // Update the avatar in the main user image at the top
+  const userImage = document.getElementById("prepVisitUserImage");
+  if (userImage) {
+    userImage.src = storedAvatar;
+  }
+  
+  // Update user avatar in header
+  const userAvatar = document.getElementById("prepVisitAvatar");
+  if (userAvatar) {
+    userAvatar.src = storedAvatar;
+  }
+  
+  // Set up checkbox event listeners to save selections
+  setupCheckboxListeners();
+  
+  console.log("Finished displaying prep visit logs");
+}
+
+// Make sure we have the setupCheckboxListeners function
+function setupCheckboxListeners() {
+  console.log("Setting up checkbox listeners");
+  
+  const checkboxes = document.querySelectorAll(".log-checkbox");
+  console.log(`Found ${checkboxes.length} checkboxes to set up`);
+  
+  checkboxes.forEach((checkbox, index) => {
+    // Remove any existing click handlers by cloning the element
+    const newCheckbox = checkbox.cloneNode(true);
+    checkbox.parentNode.replaceChild(newCheckbox, checkbox);
+    
+    newCheckbox.addEventListener("click", function() {
+      const checkboxSvg = this.querySelector(".checkbox");
+      const logCard = this.closest(".health-log-card");
+      const logId = logCard ? logCard.dataset.logId : null;
+      
+      console.log(`Checkbox clicked for log ID: ${logId}`);
+      
+      if (!checkboxSvg || !logId) {
+        console.error("Missing checkbox SVG or log ID", {checkboxSvg, logId});
+        return;
+      }
+      
+      // Toggle between checked and unchecked
+      if (checkboxSvg.classList.contains("checked")) {
+        console.log(`Unchecking log: ${logId}`);
+        checkboxSvg.classList.remove("checked");
+        checkboxSvg.innerHTML = `
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <rect x="0.5" y="0.5" width="23" height="23" rx="3.5" stroke="#AEAEB2"/>
+          </svg>
+        `;
+        
+        // Update selected logs in sessionStorage
+        let selectedLogs = JSON.parse(sessionStorage.getItem("selectedLogs") || "[]");
+        selectedLogs = selectedLogs.filter(id => id !== logId);
+        sessionStorage.setItem("selectedLogs", JSON.stringify(selectedLogs));
+        console.log(`Removed log ${logId} from selected logs`);
+      } else {
+        console.log(`Checking log: ${logId}`);
+        checkboxSvg.classList.add("checked");
+        checkboxSvg.innerHTML = `
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <rect x="0.5" y="0.5" width="23" height="23" rx="3.5" fill="#12B28C"/>
+            <path d="M7 12L10 15L17 8" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        `;
+        
+        // Update selected logs in sessionStorage
+        let selectedLogs = JSON.parse(sessionStorage.getItem("selectedLogs") || "[]");
+        if (!selectedLogs.includes(logId)) {
+          selectedLogs.push(logId);
+          sessionStorage.setItem("selectedLogs", JSON.stringify(selectedLogs));
+          console.log(`Added log ${logId} to selected logs`);
+        }
+      }
+    });
+  });
+  
+  console.log("Checkbox listeners setup complete");
 }
 
 // Helper function for date suffixes (1st, 2nd, 3rd, etc.)
@@ -1545,8 +1790,8 @@ function saveResponse(questionIndex, response) {
   console.log(`Question ${questionIndex + 1} response:`, response);
   
   // In a real app, you would send this to your backend
-  // For now, we'll just store in localStorage as an example
-  const responses = JSON.parse(localStorage.getItem('healthLogResponses') || '[]');
+  // For now, we'll just store in sessionStorage as an example
+  const responses = JSON.parse(sessionStorage.getItem('healthLogResponses') || '[]');
   
   responses[questionIndex] = {
     questionIndex: questionIndex,
@@ -1554,7 +1799,7 @@ function saveResponse(questionIndex, response) {
     timestamp: new Date().toISOString()
   };
   
-  localStorage.setItem('healthLogResponses', JSON.stringify(responses));
+  sessionStorage.setItem('healthLogResponses', JSON.stringify(responses));
 }
 
 // Function to save question texts for later reference
@@ -1573,8 +1818,8 @@ function saveQuestionTexts() {
     }
   });
   
-  // Save to localStorage
-  localStorage.setItem('questionTexts', JSON.stringify(questionTexts));
+  // Save to sessionStorage
+  sessionStorage.setItem('questionTexts', JSON.stringify(questionTexts));
   console.log("Saved question texts:", questionTexts);
 }
 
@@ -1582,7 +1827,7 @@ function saveQuestionTexts() {
 function handleQuestionResponse(questionIndex, response) {
   console.log(`Question ${questionIndex + 1} response:`, response);
   
-  // Save the response (to localStorage or your API)
+  // Save the response (to sessionStorage or your API)
   saveResponse(questionIndex, response);
   
   // Get the current card
@@ -1688,7 +1933,7 @@ function createAdditionalDetailsSection(questionIndex, response) {
       }
       
       // Get the question text from stored values
-      const questionTexts = JSON.parse(localStorage.getItem('questionTexts') || '[]');
+      const questionTexts = JSON.parse(sessionStorage.getItem('questionTexts') || '[]');
       const questionText = questionIndex < questionTexts.length 
         ? questionTexts[questionIndex] 
         : `Question ${questionIndex + 1}`;
@@ -1920,14 +2165,14 @@ function createAdditionalDetailCard(questionIndex, response, container) {
       saveButton.addEventListener('click', () => {
         const newResponse = textarea.value.trim();
         if (newResponse) {
-          // Update response in localStorage
-          const responses = JSON.parse(localStorage.getItem('healthLogResponses') || '[]');
+          // Update response in sessionStorage
+          const responses = JSON.parse(sessionStorage.getItem('healthLogResponses') || '[]');
           responses[questionIndex] = {
             questionIndex: questionIndex,
             response: newResponse,
             timestamp: new Date().toISOString()
           };
-          localStorage.setItem('healthLogResponses', JSON.stringify(responses));
+          sessionStorage.setItem('healthLogResponses', JSON.stringify(responses));
           
           // Update UI
           const responseElement = detailCard.querySelector('.detail-response');
@@ -2006,8 +2251,8 @@ function openEditModal(questionIndex, questionText, currentResponse) {
 
 // Function to update a response
 function updateResponse(questionIndex, newResponse) {
-  // Save to localStorage
-  const responses = JSON.parse(localStorage.getItem('healthLogResponses') || '[]');
+  // Save to sessionStorage
+  const responses = JSON.parse(sessionStorage.getItem('healthLogResponses') || '[]');
   
   responses[questionIndex] = {
     questionIndex: questionIndex,
@@ -2015,7 +2260,7 @@ function updateResponse(questionIndex, newResponse) {
     timestamp: new Date().toISOString()
   };
   
-  localStorage.setItem('healthLogResponses', JSON.stringify(responses));
+  sessionStorage.setItem('healthLogResponses', JSON.stringify(responses));
   
   // Update the UI
   const detailCards = document.querySelectorAll('.detail-card');
@@ -2249,10 +2494,8 @@ function updateNavButtons(currentIndex, totalCards) {
   console.log(`Updated nav buttons. Current index: ${currentIndex}, Total cards: ${totalCards}`);
 }
 
-// Modify fixSubmitButtonTransition() function to ensure logs are displayed
+/// Modify the error handling in fixSubmitButtonTransition
 function fixSubmitButtonTransition() {
-  console.log("Fixing submit button transition");
-  
   const healthLogPage = document.getElementById("newHealthLogPage");
   if (!healthLogPage) {
     console.error("Health log page not found");
@@ -2264,8 +2507,6 @@ function fixSubmitButtonTransition() {
     console.error("Submit button not found on health log page");
     return;
   }
-  
-  console.log("Found submit button, replacing with clone");
   
   const newButton = submitButton.cloneNode(true);
   submitButton.parentNode.replaceChild(newButton, submitButton);
@@ -2284,13 +2525,17 @@ function fixSubmitButtonTransition() {
     console.log("Valid symptom input, proceeding to follow-up page");
     
     try {
-      // First save the health log
-      const savedLog = await callAPI('/logs', 'POST', {
-        text: logText,
-        date: new Date().toISOString()
-      });
-      
-      console.log("Log saved to backend:", savedLog);
+      let savedLog;
+      try {
+        // Attempt to save the log
+        savedLog = await callAPI('/logs', 'POST', {
+          text: logText,
+          date: new Date().toISOString()
+        });
+        console.log("Log saved to backend:", savedLog);
+      } catch (saveError) {
+        console.warn("Failed to save log to backend, continuing with local save", saveError);
+      }
       
       // Save locally for immediate display
       sessionStorage.setItem("lastHealthLog", logText);
@@ -2310,8 +2555,38 @@ function fixSubmitButtonTransition() {
       console.log("Transitioning to follow-up page");
       transitionPages("newHealthLogPage", "newHealthLogPage32");
     } catch (error) {
-      console.error("Error saving log or generating questions:", error);
-      alert("There was an error processing your health log. Please try again.");
+      console.error("Error processing health log:", error);
+      
+      // Fallback mechanism
+      sessionStorage.setItem("lastHealthLog", logText);
+      saveNewHealthLog(logText);
+      
+      // Generate default follow-up questions
+      const defaultQuestions = [
+        {
+          id: 1,
+          number: "01",
+          question: "How long have you been experiencing these symptoms?"
+        },
+        {
+          id: 2,
+          number: "02",
+          question: "Have you tried any medications for relief?"
+        },
+        {
+          id: 3,
+          number: "03",
+          question: "Any changes in your daily routine?"
+        }
+      ];
+      
+      sessionStorage.setItem("currentQuestions", JSON.stringify(defaultQuestions));
+      
+      // Initialize follow-up page with default questions
+      initializeHealthLogFollowupPage();
+      
+      // Transition to follow-up page
+      transitionPages("newHealthLogPage", "newHealthLogPage32");
     }
   });
 }
@@ -2507,14 +2782,14 @@ function createEditModal(questionIndex, questionText, currentResponse, responseE
     
     // Update the response if not empty
     if (newResponse) {
-      // Update response in localStorage
-      const responses = JSON.parse(localStorage.getItem('healthLogResponses') || '[]');
+      // Update response in sessionStorage
+      const responses = JSON.parse(sessionStorage.getItem('healthLogResponses') || '[]');
       responses[questionIndex] = {
         questionIndex: questionIndex,
         response: newResponse,
         timestamp: new Date().toISOString()
       };
-      localStorage.setItem('healthLogResponses', JSON.stringify(responses));
+      sessionStorage.setItem('healthLogResponses', JSON.stringify(responses));
       
       // Update UI
       if (responseElement) {
@@ -2603,8 +2878,8 @@ function updateMenuUserInfo() {
   
   if (menuUserAvatar && menuUserName) {
     // Get stored user data
-    const storedAvatar = localStorage.getItem("selectedAvatar") || "https://placehold.co/134x134";
-    const storedName = localStorage.getItem("userName") || "James Quinn";
+    const storedAvatar = sessionStorage.getItem("selectedAvatar") || "https://placehold.co/134x134";
+    const storedName = sessionStorage.getItem("userName") || "James Quinn";
     
     // Get first name and family name
     const nameParts = storedName.split(" ");
@@ -2620,22 +2895,64 @@ function updateMenuUserInfo() {
     }
   }
 }
+// Function to add the menu to the app
+function addMenuToApp() {
+  console.log("Adding menu to app");
+  initializeMenu();
+}
+// Modified function to add menu button listeners only where needed
+function addMenuButtonListeners() {
+  // Get the current visible page
+  const currentPage = document.querySelector('.page.visible');
+  if (!currentPage) {
+    console.error("No visible page found");
+    return;
+  }
+  
+  // Find menu buttons only on the current page
+  const menuButtons = currentPage.querySelectorAll('.menu-button, .menu-button img');
+  
+  console.log(`Adding menu button listeners on page ${currentPage.id} to ${menuButtons.length} buttons`);
+  
+  if (menuButtons.length === 0) {
+    console.log(`No menu buttons found on page ${currentPage.id}`);
+    return; // No menu buttons on this page
+  }
+  
+  // Add click event listeners to menu buttons found on this page
+  menuButtons.forEach(button => {
+    // Remove existing listeners by cloning
+    const newButton = button.cloneNode(true);
+    button.parentNode.replaceChild(newButton, button);
+    
+    // Add new listener
+    newButton.addEventListener('click', function(e) {
+      e.stopPropagation();
+      console.log("Menu button clicked");
+      toggleMenu();
+    });
+  });
+}
 
-// Function to set up event listeners for menu buttons
+// Improved setupMenuToggleListeners function
 function setupMenuToggleListeners() {
-  // Get all menu buttons across pages
-  const menuButtons = document.querySelectorAll('.menu-button');
+  const menuButtons = document.querySelectorAll('.menu-button, .menu-button img');
   const menuContainer = document.getElementById('appMenu');
   const menuCloseButton = document.querySelector('.menu-close-button');
   
   if (!menuContainer) {
     console.error("Menu container not found");
+    initializeMenu(); // Create the menu if it doesn't exist
     return;
   }
   
   // Add click event listeners to all menu buttons
   menuButtons.forEach(button => {
-    button.addEventListener('click', function(e) {
+    // Clone to remove any existing listeners
+    const newButton = button.cloneNode(true);
+    button.parentNode.replaceChild(newButton, button);
+    
+    newButton.addEventListener('click', function(e) {
       e.stopPropagation(); // Prevent event from bubbling up
       console.log("Menu button clicked");
       toggleMenu();
@@ -2644,24 +2961,17 @@ function setupMenuToggleListeners() {
   
   // Add click event listener to close button
   if (menuCloseButton) {
-    menuCloseButton.addEventListener('click', function(e) {
-      e.stopPropagation(); // Prevent event from bubbling up
+    const newCloseButton = menuCloseButton.cloneNode(true);
+    menuCloseButton.parentNode.replaceChild(newCloseButton, menuCloseButton);
+    
+    newCloseButton.addEventListener('click', function(e) {
+      e.stopPropagation();
       console.log("Menu close button clicked");
       toggleMenu();
     });
   }
-  
-  // Close menu when clicking outside the menu
-  document.addEventListener('click', function(e) {
-    if (menuContainer && !menuContainer.classList.contains('hidden')) {
-      // Check if click is outside the menu
-      if (!menuContainer.contains(e.target) && !e.target.classList.contains('menu-button')) {
-        console.log("Clicked outside menu, closing");
-        toggleMenu();
-      }
-    }
-  });
 }
+
 
 // Function to toggle menu visibility
 function toggleMenu() {
@@ -2747,11 +3057,6 @@ function setupMenuItemListeners() {
   });
 }
 
-// Function to add the menu to the app
-function addMenuToApp() {
-  console.log("Adding menu to app");
-  initializeMenu();
-}
 // Function to update user info on the Health History page
 function updateHealthHistoryUserInfo() {
   const userAvatar = document.getElementById("healthHistoryAvatar");
@@ -2759,8 +3064,8 @@ function updateHealthHistoryUserInfo() {
   
   if (userAvatar && userName) {
     // Get stored user data
-    const storedAvatar = localStorage.getItem("selectedAvatar") || "https://placehold.co/40x40";
-    const storedName = localStorage.getItem("userName") || "James";
+    const storedAvatar = sessionStorage.getItem("selectedAvatar") || "https://placehold.co/40x40";
+    const storedName = sessionStorage.getItem("userName") || "James";
     
     // Just show first name with exclamation mark
     userName.textContent = storedName.split(" ")[0] + "!";
@@ -2776,8 +3081,8 @@ function updatePrepVisitUserInfo() {
   
   if (userAvatar && userName) {
     // Get stored user data
-    const storedAvatar = localStorage.getItem("selectedAvatar") || "https://placehold.co/40x40";
-    const storedName = localStorage.getItem("userName") || "James";
+    const storedAvatar = sessionStorage.getItem("selectedAvatar") || "https://placehold.co/40x40";
+    const storedName = sessionStorage.getItem("userName") || "James";
     
     // Just show first name with exclamation mark
     userName.textContent = storedName.split(" ")[0] + "!";
@@ -2797,7 +3102,7 @@ function updatePrepVisitUserInfo() {
 // Update log avatars
 function updateLogAvatars() {
   const logAvatars = document.querySelectorAll(".log-avatar");
-  const storedAvatar = localStorage.getItem("selectedAvatar") || "https://placehold.co/67x67";
+  const storedAvatar = sessionStorage.getItem("selectedAvatar") || "https://placehold.co/67x67";
   
   logAvatars.forEach(avatar => {
     avatar.src = storedAvatar;
@@ -3093,19 +3398,50 @@ window.addEventListener('resize', fixAllFooters);
 // Ensure transitionPages calls displayHealthLogs when going to Health History page
 const originalTransitionPages = window.transitionPages;
 window.transitionPages = function(fromPageId, toPageId) {
-  // Call original function
-  originalTransitionPages(fromPageId, toPageId);
+  console.log(`Starting transition from ${fromPageId} to ${toPageId}`);
   
-  // If transitioning to health history page, refresh logs
-  if (toPageId === "healthHistoryPage") {
-    setTimeout(() => {
-      displayHealthLogs();
-      console.log("Refreshed health logs after transition");
-    }, 100);
+  // Get the from and to pages
+  const fromPage = document.getElementById(fromPageId);
+  const toPage = document.getElementById(toPageId);
+  
+  if (!fromPage || !toPage) {
+    console.error(`Page transition failed: ${fromPageId} to ${toPageId}`);
+    return;
   }
   
-  // Apply other fixes after transition
+  console.log(`Transitioning from ${fromPageId} to ${toPageId}`);
+  
+  // Hide from page
+  fromPage.style.display = "none";
+  fromPage.classList.remove("visible");
+  fromPage.classList.add("hidden");
+  
+  // Show to page
+  toPage.style.display = "block";
+  toPage.classList.remove("hidden");
+  toPage.classList.add("visible");
+  
+  // If going to details page, update welcome message
+  if (toPageId === "detailsPage") {
+    updateWelcomeName();
+  }
+  
+  // Special page initializations
   setTimeout(function() {
+    // Special handling for specific pages
+    if (toPageId === "prepVisitPage") {
+      console.log("Initializing Prep Visit page after transition");
+
+       // Debug: Check if logs exist in session storage
+       const logs = JSON.parse(sessionStorage.getItem("healthLogs") || "[]");
+       console.log("Current logs in sessionStorage before init:", logs.length, logs);
+
+      initializePrepVisitPage();
+    } else if (toPageId === "healthHistoryPage") {
+      console.log("Refreshing health logs");
+      displayHealthLogs();
+    }
+    
     // Fix footer positioning
     fixAllFooters();
     
@@ -3113,7 +3449,37 @@ window.transitionPages = function(fromPageId, toPageId) {
     updateAllAvatars();
     updateUserNames();
     
-    console.log(`Transition complete from ${fromPageId} to ${toPageId}, updates applied`);
-  }, 100);
+    // Add menu button listeners if the page has menu buttons
+    const hasMenuButtons = toPage.querySelectorAll('.menu-button').length > 0;
+    if (hasMenuButtons) {
+      addMenuButtonListeners();
+    }
+    
+    console.log(`Transition complete from ${fromPageId} to ${toPageId}`);
+  }, 200); // Give time for DOM updates
+};
+window.testFallback = async (logText) => {
+  console.log("Manually testing fallback mechanism");
+  try {
+    // Store the original fetch method
+    const originalFetch = window.fetch;
+    
+    // Override fetch to simulate a network error
+    window.fetch = () => {
+      throw new Error('Simulated network error');
+    };
+
+    try {
+      const questions = await testFollowUpQuestions(logText || "I'm feeling tired");
+      console.log("Fallback questions:", questions);
+    } catch (questionsError) {
+      console.error("Error generating fallback questions:", questionsError);
+    } finally {
+      // Always restore the original fetch, even if an error occurs
+      window.fetch = originalFetch;
+    }
+  } catch (error) {
+    console.error("Fallback test failed", error);
+  }
 };
 window.addMenuToApp = addMenuToApp;
