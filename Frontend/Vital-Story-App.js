@@ -146,7 +146,7 @@ async function getFollowUpQuestions(logText) {
     console.log("Attempting to get follow-up questions for log:", logText);
     
     // Prepare the request data exactly like in the Python code
-    const response = await callAPI('/followup', 'POST', logText);
+    const response = await callAPI('', 'POST', logText);
     
     console.log("Full API response:", response);
     
@@ -2489,7 +2489,7 @@ function fixSubmitButtonTransition() {
       let savedLog;
       try {
         // Attempt to save the log
-        savedLog = await callAPI('/logs', 'POST', {
+        savedLog = await callAPI('', 'POST', {
           text: logText,
           date: new Date().toISOString()
         });
