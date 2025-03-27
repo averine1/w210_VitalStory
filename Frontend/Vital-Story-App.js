@@ -52,24 +52,23 @@ Respond ONLY with the JSON array and nothing else.
   return prompt;
 }
 async function callAPI(endpoint, method = 'GET', data = null) {
-  const API_GATEWAY_URL = 'https://0oh0zinoi8.execute-api.us-west-2.amazonaws.com/vitalstory-apiendpoint/vitalstory';
+  // Use just the API URL without appending anything
+  const API_URL = 'https://0oh0zinoi8.execute-api.us-west-2.amazonaws.com/vitalstory-apiendpoint/vitalstory';
   
   const options = {
     method: method,
     headers: {
-      'Content-Type': 'application/json',
-      'Authorization': `Bearer ${sessionStorage.getItem('authToken')}`
+      'Content-Type': 'application/json'
     },
   };
   
   if (data && (method === 'POST' || method === 'PUT')) {
-    // Format payload the same way as the Python code
-    const payload = { "inputs": data };
-    options.body = JSON.stringify(payload);
+    options.body = JSON.stringify({ "inputs": data });
   }
   
   try {
-    const response = await fetch(`${API_GATEWAY_URL}${endpoint}`, options);
+    // Don't append the endpoint parameter
+    const response = await fetch(API_URL, options);
     
     if (!response.ok) {
       const errorText = await response.text();
@@ -77,29 +76,12 @@ async function callAPI(endpoint, method = 'GET', data = null) {
       throw new Error(`API call failed: ${response.status}`);
     }
     
-    const responseData = await response.json();
-    
-    // Handle string responses that contain "vitalstory" - matches Python processing
-    if (typeof responseData === 'string' && responseData.toLowerCase().includes("vitalstory:")) {
-      const predictionStart = responseData.indexOf("Vitalstory:");
-      if (predictionStart !== -1) {
-        // Extract the prediction part similar to the Python code
-        const prediction = responseData.substring(predictionStart + "Vitalstory:".length).trim();
-        return { Prediction: prediction };
-      }
-    }
-    
-    return responseData;
+    return await response.json();
   } catch (error) {
-    console.error('Detailed API call error:', {
-      name: error.name,
-      message: error.message,
-      stack: error.stack
-    });
+    console.error('Detailed API call error:', error);
     throw error;
   }
 }
-
 
 /**
  * Test follow-up questions generation
