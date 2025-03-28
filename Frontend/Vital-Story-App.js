@@ -58,17 +58,39 @@ async function callAPI(endpoint, method = 'GET', data = null) {
   const options = {
     method: method,
     headers: {
-      'Content-Type': 'application/json'
+      'Content-Type': 'text/plain'
     },
+    mode: 'no-cors' // Add this to bypass CORS for testing
   };
   
   if (data && (method === 'POST' || method === 'PUT')) {
-    options.body = JSON.stringify({ "inputs": data });
+    // Format the request body to match the expected format
+    const requestBody = {
+      inputs: data,
+      parameters: {
+        do_sample: true,
+        top_p: 0.6,
+        temperature: 0.8,
+        top_k: 50,
+        max_new_tokens: 512,
+        repetition_penalty: 1.03,
+        stop: ["</s>"]
+      }
+    };
+    
+    // Print the request body to console
+    console.log("Request body being sent to API:", JSON.stringify(requestBody, null, 2));
+    
+    options.body = JSON.stringify(requestBody);
   }
   
   try {
     // Don't append the endpoint parameter
     const response = await fetch(API_URL, options);
+    
+    // Log the raw response status and headers
+    console.log("API Response Status:", response.status);
+    console.log("API Response Headers:", Object.fromEntries(response.headers.entries()));
     
     if (!response.ok) {
       const errorText = await response.text();
@@ -76,7 +98,22 @@ async function callAPI(endpoint, method = 'GET', data = null) {
       throw new Error(`API call failed: ${response.status}`);
     }
     
-    return await response.json();
+    // Parse the response as text first
+    const responseText = await response.text();
+    console.log("Raw API Response Text:", responseText);
+    
+    // Try to parse as JSON if possible
+    try {
+      const jsonResponse = JSON.parse(responseText);
+      console.log("Parsed JSON Response:", jsonResponse);
+      return jsonResponse;
+    } catch (e) {
+      // If not JSON, return the text response with a structure similar to what your code expects
+      console.log("Response is not valid JSON, returning text wrapped in Prediction object");
+      return { 
+        Prediction: responseText 
+      };
+    }
   } catch (error) {
     console.error('Detailed API call error:', error);
     throw error;
@@ -145,37 +182,35 @@ async function getFollowUpQuestions(logText) {
   try {
     console.log("Attempting to get follow-up questions for log:", logText);
     
-    // Prepare the request data exactly like in the Python code
+    // Use the empty string for endpoint
     const response = await callAPI('', 'POST', logText);
     
     console.log("Full API response:", response);
     
-    // Check for 'Prediction' key
+    // Check for the specific format from your API response
     if (response.Prediction) {
       try {
-        // Try to parse the Prediction
-        let questions;
-        
-        // If Prediction is already an array, use it
-        if (Array.isArray(response.Prediction)) {
-          questions = response.Prediction;
-        } 
-        // If it's a string, try to parse it
-        else if (typeof response.Prediction === 'string') {
-          // Try to extract JSON from the string
-          const jsonMatch = response.Prediction.match(/\[[\s\S]*?\]/);
-          if (jsonMatch) {
-            questions = JSON.parse(jsonMatch[0]);
-          }
+        // If the prediction contains "Vitalstory:" extract it
+        let predictionText = response.Prediction;
+        if (typeof predictionText === 'string' && predictionText.includes('Vitalstory:')) {
+          predictionText = predictionText.split('Vitalstory:')[1].trim();
         }
         
-        // Validate and format questions
-        if (questions && questions.length >= 3) {
-          return questions.slice(0, 3).map((q, index) => ({
-            id: index + 1,
-            number: String(index + 1).padStart(2, '0'),
-            question: typeof q === 'object' ? q.question : q
-          }));
+        // Try to extract JSON if present
+        const jsonMatch = predictionText.match(/\[[\s\S]*?\]/);
+        if (jsonMatch) {
+          try {
+            const questions = JSON.parse(jsonMatch[0]);
+            if (questions && questions.length >= 3) {
+              return questions.slice(0, 3).map((q, index) => ({
+                id: index + 1,
+                number: String(index + 1).padStart(2, '0'),
+                question: typeof q === 'object' ? q.question : q
+              }));
+            }
+          } catch (jsonError) {
+            console.error('Error parsing JSON from prediction:', jsonError);
+          }
         }
       } catch (parseError) {
         console.error('Error parsing Prediction:', parseError);
@@ -200,7 +235,6 @@ async function getFollowUpQuestions(logText) {
         question: "Have you noticed any patterns with your symptoms?"
       }
     ];
-    
   } catch (error) {
     console.error('Error getting questions from API:', error);
     throw error;
