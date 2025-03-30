@@ -52,45 +52,24 @@ Respond ONLY with the JSON array and nothing else.
   return prompt;
 }
 async function callAPI(endpoint, method = 'GET', data = null) {
-  // Use just the API URL without appending anything
   const API_URL = 'https://0oh0zinoi8.execute-api.us-west-2.amazonaws.com/vitalstory-apiendpoint/vitalstory';
   
   const options = {
     method: method,
     headers: {
-      'Content-Type': 'text/plain'
-    },
-    mode: 'no-cors' // Add this to bypass CORS for testing
+      'Content-Type': 'application/json'  // Changed back to application/json
+    }
   };
   
   if (data && (method === 'POST' || method === 'PUT')) {
-    // Format the request body to match the expected format
-    const requestBody = {
-      inputs: data,
-      parameters: {
-        do_sample: true,
-        top_p: 0.6,
-        temperature: 0.8,
-        top_k: 50,
-        max_new_tokens: 512,
-        repetition_penalty: 1.03,
-        stop: ["</s>"]
-      }
-    };
-    
-    // Print the request body to console
-    console.log("Request body being sent to API:", JSON.stringify(requestBody, null, 2));
-    
-    options.body = JSON.stringify(requestBody);
+    // Format exactly like your teammate's code
+    const payload = { "inputs": data };
+    console.log("Request payload:", JSON.stringify(payload, null, 2));
+    options.body = JSON.stringify(payload);
   }
   
   try {
-    // Don't append the endpoint parameter
     const response = await fetch(API_URL, options);
-    
-    // Log the raw response status and headers
-    console.log("API Response Status:", response.status);
-    console.log("API Response Headers:", Object.fromEntries(response.headers.entries()));
     
     if (!response.ok) {
       const errorText = await response.text();
@@ -98,22 +77,26 @@ async function callAPI(endpoint, method = 'GET', data = null) {
       throw new Error(`API call failed: ${response.status}`);
     }
     
-    // Parse the response as text first
     const responseText = await response.text();
-    console.log("Raw API Response Text:", responseText);
+    console.log("Raw API Response:", responseText);
     
-    // Try to parse as JSON if possible
-    try {
-      const jsonResponse = JSON.parse(responseText);
-      console.log("Parsed JSON Response:", jsonResponse);
-      return jsonResponse;
-    } catch (e) {
-      // If not JSON, return the text response with a structure similar to what your code expects
-      console.log("Response is not valid JSON, returning text wrapped in Prediction object");
-      return { 
-        Prediction: responseText 
-      };
+    // Process the response similar to your teammate's code
+    let processedResponse;
+    
+    if (responseText.includes("Vitalstory:")) {
+      const predictionStart = responseText.indexOf("Vitalstory:");
+      const predictionText = responseText.substring(predictionStart + "Vitalstory:".length).trim();
+      processedResponse = { Prediction: predictionText };
+    } else {
+      // Try to parse as JSON if possible
+      try {
+        processedResponse = JSON.parse(responseText);
+      } catch (e) {
+        processedResponse = { Prediction: responseText };
+      }
     }
+    
+    return processedResponse;
   } catch (error) {
     console.error('Detailed API call error:', error);
     throw error;
@@ -279,6 +262,9 @@ document.addEventListener("DOMContentLoaded", function() {
   if (document.getElementById("healthHistoryPage")) {
     initializeHealthHistoryPage();
   }
+
+  // Set up prep notes button handler
+  setupPrepNotesButtonHandler();
 
 });
 
@@ -955,19 +941,17 @@ function createTextInputContent() {
   }
 }
 function initializePrepVisitPage() {
-  console.log("Initializing Prep Visit page");
+  console.log("STARTING initializePrepVisitPage function");
   
   // Update user info
   updatePrepVisitUserInfo();
   
+  refreshPrepVisitLogs();
+
   // Set up event listeners
   setupPrepVisitEventListeners();
-
-  // Display user's actual logs
-  displayPrepVisitLogs();
-
   
-  console.log("Prep Visit page initialized");
+  console.log("Prep visit page initialized");
 }
 // Function to initialize the New Health Log page
 function initializeNewHealthLogPage() {
@@ -1124,50 +1108,63 @@ function displayHealthLogs() {
 }
 
 // Function to display user logs on the Prep Visit page
-// Updated displayPrepVisitLogs function to show actual logs and update user avatar
+// Function to display user logs on the Prep Visit page
 function displayPrepVisitLogs() {
-  console.log("Displaying prep visit logs");
+  console.log("%c STARTING displayPrepVisitLogs function", "background: #f00; color: #fff; padding: 5px;");
   
+  // 1. Find the content area and prep notes button
   const prepVisitContent = document.querySelector('.prep-visit-content');
   if (!prepVisitContent) {
-    console.error("Prep visit content area not found");
+    console.error("ERROR: Prep visit content area not found");
+    // Add visual feedback for debugging
+    alert("Prep visit content area not found!");
     return;
   }
   
-  // Find the prep notes button to use as a reference point
   const prepNotesButton = document.querySelector('.prep-notes-button');
   if (!prepNotesButton) {
-    console.error("Prep notes button not found");
+    console.error("ERROR: Prep notes button not found");
+    // Add visual feedback for debugging
+    alert("Prep notes button not found!");
     return;
   }
   
-  // IMPORTANT: Remove all existing month titles and log cards first
-  // This removes the hardcoded examples from the HTML
-  const monthTitles = document.querySelectorAll('.month-title');
-  const logCards = document.querySelectorAll('.health-log-card');
+  console.log("Found content area and prep notes button");
   
-  console.log(`Found ${monthTitles.length} existing month titles and ${logCards.length} existing log cards to remove`);
-  
-  // Remove all existing month titles and log cards
-  monthTitles.forEach(title => title.remove());
-  logCards.forEach(card => card.remove());
-  
-  // Get user's avatar
-  const storedAvatar = sessionStorage.getItem("selectedAvatar") || "https://placehold.co/67x67";
-  
-  // Get logs from sessionStorage only
+  // 2. Get logs from sessionStorage with visual feedback
   let existingLogs = [];
   try {
     existingLogs = JSON.parse(sessionStorage.getItem("healthLogs") || "[]");
-    console.log(`Found ${existingLogs.length} logs to display from sessionStorage:`, existingLogs);
+    console.log(`Retrieved ${existingLogs.length} logs from sessionStorage:`, existingLogs);
+    
+    // Add visual feedback
+    if (existingLogs.length > 0) {
+      // Insert a temporary visible debug element
+      const debugElement = document.createElement('div');
+      debugElement.style.background = 'red';
+      debugElement.style.color = 'white';
+      debugElement.style.padding = '10px';
+      debugElement.style.margin = '10px 0';
+      debugElement.textContent = `Found ${existingLogs.length} logs in storage. Check console for details.`;
+      prepVisitContent.insertBefore(debugElement, prepNotesButton);
+      
+      // Auto-remove after 5 seconds
+      setTimeout(() => {
+        try {
+          if (debugElement.parentNode) {
+            debugElement.parentNode.removeChild(debugElement);
+          }
+        } catch (e) {}
+      }, 5000);
+    }
   } catch (error) {
-    console.error("Error parsing logs:", error);
+    console.error("Error retrieving logs:", error);
     existingLogs = [];
   }
   
-  // If no logs yet, show a message
+  // Display a message and stop if no logs
   if (!existingLogs || existingLogs.length === 0) {
-    console.log("No logs found in sessionStorage");
+    console.log("No logs available to display");
     const noLogsMsg = document.createElement('div');
     noLogsMsg.style.textAlign = 'center';
     noLogsMsg.style.margin = '40px 0';
@@ -1180,7 +1177,23 @@ function displayPrepVisitLogs() {
     return;
   }
   
-  // Group logs by month
+  // 3. Clear existing log elements
+  const existingMonthTitles = prepVisitContent.querySelectorAll('.month-title');
+  const existingLogCards = prepVisitContent.querySelectorAll('.health-log-card');
+  
+  console.log(`Found ${existingMonthTitles.length} existing month titles and ${existingLogCards.length} existing log cards`);
+  
+  existingMonthTitles.forEach(title => {
+    console.log(`Removing month title: ${title.textContent}`);
+    title.remove();
+  });
+  
+  existingLogCards.forEach(card => {
+    console.log("Removing log card");
+    card.remove();
+  });
+  
+  // 4. Group logs by month
   const logsByMonth = {};
   
   existingLogs.forEach(log => {
@@ -1202,19 +1215,9 @@ function displayPrepVisitLogs() {
     }
   });
   
-  console.log("Logs grouped by month:", logsByMonth);
+  console.log("Logs grouped by month:", Object.keys(logsByMonth));
   
-  // Get selected logs from storage
-  let selectedLogs = [];
-  try {
-    selectedLogs = JSON.parse(sessionStorage.getItem("selectedLogs") || "[]");
-    console.log(`Found ${selectedLogs.length} previously selected logs`);
-  } catch (error) {
-    console.error("Error parsing selected logs:", error);
-    selectedLogs = [];
-  }
-  
-  // Display logs by month
+  // 5. Display logs by month
   Object.keys(logsByMonth).forEach(monthYear => {
     console.log(`Creating section for ${monthYear} with ${logsByMonth[monthYear].length} logs`);
     
@@ -1222,6 +1225,7 @@ function displayPrepVisitLogs() {
     const monthTitle = document.createElement('h2');
     monthTitle.className = 'month-title';
     monthTitle.textContent = monthYear;
+    monthTitle.style.color = 'black'; // Ensure title is visible
     prepVisitContent.insertBefore(monthTitle, prepNotesButton);
     
     // Create log cards for this month
@@ -1230,32 +1234,24 @@ function displayPrepVisitLogs() {
         const date = new Date(log.date);
         const formattedDate = `${date.toLocaleString('default', { month: 'long' })} ${date.getDate()}${getOrdinalSuffix(date.getDate())}, ${date.getFullYear()}`;
         
-        // Create a unique ID for this log based on date and text
+        // Create a unique ID for this log
         const logId = `${date.toISOString()}-${log.text.substring(0, 20).replace(/[^a-zA-Z0-9]/g, '')}`;
-        
-        // Check if this log was previously selected
-        const isSelected = selectedLogs.includes(logId);
         
         const logCard = document.createElement('div');
         logCard.className = 'health-log-card';
         logCard.dataset.logId = logId;
         
-        // Create checkbox HTML with correct initial state
-        const checkboxHtml = isSelected ? 
-          `<div class="checkbox checked">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <rect x="0.5" y="0.5" width="23" height="23" rx="3.5" fill="#12B28C"/>
-              <path d="M7 12L10 15L17 8" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-            </svg>
-          </div>` :
-          `<div class="checkbox">
+        // Create checkbox HTML
+        const checkboxHtml = `
+          <div class="checkbox">
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
               <rect x="0.5" y="0.5" width="23" height="23" rx="3.5" stroke="#AEAEB2"/>
             </svg>
-          </div>`;
+          </div>
+        `;
         
-        // Use the user's actual avatar from storage, or the log's avatar if available
-        const avatarSrc = log.avatar || storedAvatar;
+        // Use the user's actual avatar
+        const avatarSrc = log.avatar || sessionStorage.getItem("selectedAvatar") || "https://placehold.co/67x67";
         
         logCard.innerHTML = `
           <div class="log-avatar-container">
@@ -1263,7 +1259,7 @@ function displayPrepVisitLogs() {
           </div>
           <div class="log-content">
             <h3 class="log-date">${formattedDate}</h3>
-            <p class="log-text">${truncateText(log.text, 60)}</p>
+            <p class="log-text">${log.text.substring(0, 60)}${log.text.length > 60 ? '...' : ''}</p>
           </div>
           <div class="log-checkbox">
             ${checkboxHtml}
@@ -1272,88 +1268,174 @@ function displayPrepVisitLogs() {
         `;
         
         prepVisitContent.insertBefore(logCard, prepNotesButton);
-        console.log(`Created log card for ${formattedDate}`);
+        console.log(`Added log card for ${formattedDate}`);
       } catch (error) {
-        console.error("Error creating log card:", log, error);
+        console.error("Error creating log card:", error);
       }
     });
   });
   
-  // Update the avatar in the main user image at the top
-  const userImage = document.getElementById("prepVisitUserImage");
-  if (userImage) {
-    userImage.src = storedAvatar;
+  // Make sure checkbox listeners are attached
+  try {
+    setupCheckboxListeners();
+  } catch (error) {
+    console.error("Error setting up checkbox listeners:", error);
   }
   
-  // Update user avatar in header
-  const userAvatar = document.getElementById("prepVisitAvatar");
-  if (userAvatar) {
-    userAvatar.src = storedAvatar;
-  }
-  
-  // Set up checkbox event listeners to save selections
-  setupCheckboxListeners();
-  
-  console.log("Finished displaying prep visit logs");
+  console.log("%c FINISHED displayPrepVisitLogs function", "background: #0f0; color: #000; padding: 5px;");
 }
 
-// Make sure we have the setupCheckboxListeners function
+// Add this to your JavaScript file
+function refreshPrepVisitLogs() {
+  console.log("Refreshing prep visit logs with new implementation");
+  
+  // Get the content area and button
+  const prepVisitContent = document.querySelector('.prep-visit-content');
+  const prepNotesButton = document.querySelector('.prep-notes-button');
+  
+  if (!prepVisitContent || !prepNotesButton) {
+    console.error("Required elements not found");
+    return;
+  }
+  
+  // Clear any existing logs and month titles
+  const existingTitles = prepVisitContent.querySelectorAll('.month-title');
+  const existingCards = prepVisitContent.querySelectorAll('.health-log-card');
+  
+  existingTitles.forEach(el => el.remove());
+  existingCards.forEach(el => el.remove());
+  
+  // Get logs from sessionStorage
+  let logs = [];
+  try {
+    logs = JSON.parse(sessionStorage.getItem("healthLogs") || "[]");
+    console.log(`Found ${logs.length} logs in storage`);
+  } catch (e) {
+    console.error("Error parsing logs:", e);
+    logs = [];
+  }
+  
+  // If no logs, show a message
+  if (!logs || logs.length === 0) {
+    const noLogsMsg = document.createElement('div');
+    noLogsMsg.style.textAlign = 'center';
+    noLogsMsg.style.margin = '40px 0';
+    noLogsMsg.style.color = 'black';
+    noLogsMsg.style.fontFamily = 'Urbanist, sans-serif';
+    noLogsMsg.style.fontSize = '18px';
+    noLogsMsg.style.fontWeight = '600';
+    noLogsMsg.innerHTML = 'No health logs found.<br>Create a new log using the New Log button below.';
+    prepVisitContent.insertBefore(noLogsMsg, prepNotesButton);
+    return;
+  }
+  
+  // Group by month
+  const logsByMonth = {};
+  logs.forEach(log => {
+    const date = new Date(log.date);
+    if (isNaN(date.getTime())) return;
+    
+    const monthYear = `${date.toLocaleString('default', { month: 'long' })} ${date.getFullYear()}`;
+    if (!logsByMonth[monthYear]) {
+      logsByMonth[monthYear] = [];
+    }
+    logsByMonth[monthYear].push(log);
+  });
+  
+  // Display by month
+  Object.keys(logsByMonth).forEach(monthYear => {
+    // Create month title
+    const monthTitle = document.createElement('h2');
+    monthTitle.className = 'month-title';
+    monthTitle.textContent = monthYear;
+    prepVisitContent.insertBefore(monthTitle, prepNotesButton);
+    
+    // Create log cards
+    logsByMonth[monthYear].forEach(log => {
+      const date = new Date(log.date);
+      const formattedDate = `${date.toLocaleString('default', { month: 'long' })} ${date.getDate()}${getOrdinalSuffix(date.getDate())}, ${date.getFullYear()}`;
+      
+      // Create card
+      const card = document.createElement('div');
+      card.className = 'health-log-card';
+      
+      // Use the avatar from the log or default
+      const avatarSrc = log.avatar || sessionStorage.getItem("selectedAvatar") || "https://placehold.co/67x67";
+      
+      card.innerHTML = `
+        <div class="log-avatar-container">
+          <img src="${avatarSrc}" alt="User" class="log-avatar">
+        </div>
+        <div class="log-content">
+          <h3 class="log-date">${formattedDate}</h3>
+          <p class="log-text">${truncateText(log.text, 60)}</p>
+        </div>
+        <div class="log-checkbox">
+          <div class="checkbox">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <rect x="0.5" y="0.5" width="23" height="23" rx="3.5" stroke="#AEAEB2"/>
+            </svg>
+          </div>
+          <div class="add-log-text">Add<br/>Health Log</div>
+        </div>
+      `;
+      
+      prepVisitContent.insertBefore(card, prepNotesButton);
+    });
+  });
+  setTimeout(() => {
+    setupCheckboxListeners();
+    console.log("Checkbox listeners set up after cards were created");
+  }, 50);
+  
+  console.log("Prep visit logs refreshed successfully");
+}
+
+
 function setupCheckboxListeners() {
   console.log("Setting up checkbox listeners");
   
-  const checkboxes = document.querySelectorAll(".log-checkbox");
-  console.log(`Found ${checkboxes.length} checkboxes to set up`);
+  const checkboxContainers = document.querySelectorAll(".log-checkbox");
+  console.log(`Found ${checkboxContainers.length} checkboxes to set up`);
   
-  checkboxes.forEach((checkbox, index) => {
-    // Remove any existing click handlers by cloning the element
-    const newCheckbox = checkbox.cloneNode(true);
-    checkbox.parentNode.replaceChild(newCheckbox, checkbox);
+  checkboxContainers.forEach((container) => {
+    // Get the checkbox SVG element
+    const checkboxSvg = container.querySelector(".checkbox");
+    if (!checkboxSvg) return;
     
-    newCheckbox.addEventListener("click", function() {
-      const checkboxSvg = this.querySelector(".checkbox");
-      const logCard = this.closest(".health-log-card");
-      const logId = logCard ? logCard.dataset.logId : null;
-      
-      console.log(`Checkbox clicked for log ID: ${logId}`);
-      
-      if (!checkboxSvg || !logId) {
-        console.error("Missing checkbox SVG or log ID", {checkboxSvg, logId});
-        return;
-      }
-      
-      // Toggle between checked and unchecked
-      if (checkboxSvg.classList.contains("checked")) {
-        console.log(`Unchecking log: ${logId}`);
-        checkboxSvg.classList.remove("checked");
-        checkboxSvg.innerHTML = `
+    // Remove existing click handlers by cloning
+    const newContainer = container.cloneNode(true);
+    container.parentNode.replaceChild(newContainer, container);
+    
+    // Get the new checkbox SVG after cloning
+    const newCheckboxSvg = newContainer.querySelector(".checkbox");
+    
+    // Add click event to the new container
+    newContainer.addEventListener("click", function() {
+      // Toggle checkbox state
+      if (newCheckboxSvg.classList.contains("checked")) {
+        // Uncheck
+        newCheckboxSvg.classList.remove("checked");
+        newCheckboxSvg.innerHTML = `
           <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
             <rect x="0.5" y="0.5" width="23" height="23" rx="3.5" stroke="#AEAEB2"/>
           </svg>
         `;
-        
-        // Update selected logs in sessionStorage
-        let selectedLogs = JSON.parse(sessionStorage.getItem("selectedLogs") || "[]");
-        selectedLogs = selectedLogs.filter(id => id !== logId);
-        sessionStorage.setItem("selectedLogs", JSON.stringify(selectedLogs));
-        console.log(`Removed log ${logId} from selected logs`);
       } else {
-        console.log(`Checking log: ${logId}`);
-        checkboxSvg.classList.add("checked");
-        checkboxSvg.innerHTML = `
+        // Check
+        newCheckboxSvg.classList.add("checked");
+        newCheckboxSvg.innerHTML = `
           <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
             <rect x="0.5" y="0.5" width="23" height="23" rx="3.5" fill="#12B28C"/>
             <path d="M7 12L10 15L17 8" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
           </svg>
         `;
-        
-        // Update selected logs in sessionStorage
-        let selectedLogs = JSON.parse(sessionStorage.getItem("selectedLogs") || "[]");
-        if (!selectedLogs.includes(logId)) {
-          selectedLogs.push(logId);
-          sessionStorage.setItem("selectedLogs", JSON.stringify(selectedLogs));
-          console.log(`Added log ${logId} to selected logs`);
-        }
       }
+      
+      // Log for debugging
+      const logCard = this.closest(".health-log-card");
+      const logDate = logCard ? logCard.querySelector(".log-date").textContent : "unknown";
+      console.log(`Toggled selection for log: ${logDate}`);
     });
   });
   
@@ -1857,7 +1939,7 @@ function handleQuestionResponse(questionIndex, response) {
     <div class="thank-you-message" style="text-align: center; color: white; font-size: 30px; font-family: 'Urbanist', sans-serif; font-weight: 700; line-height: 37.50px; letter-spacing: 0.60px; margin: 15px 0; padding: 0 20px;">
       Got it! Thanks for following up.
       <br/><br/>
-      You can edit or view your response above.
+      You can edit or view your response below.
     </div>
   `;
   
@@ -3395,7 +3477,7 @@ const originalTransitionPages = window.transitionPages;
 window.transitionPages = function(fromPageId, toPageId) {
   console.log(`Starting transition from ${fromPageId} to ${toPageId}`);
   
-  // Get the from and to pages
+  // Get the pages
   const fromPage = document.getElementById(fromPageId);
   const toPage = document.getElementById(toPageId);
   
@@ -3404,55 +3486,52 @@ window.transitionPages = function(fromPageId, toPageId) {
     return;
   }
   
-  console.log(`Transitioning from ${fromPageId} to ${toPageId}`);
-  
-  // Hide from page
+  // Perform transition
   fromPage.style.display = "none";
   fromPage.classList.remove("visible");
   fromPage.classList.add("hidden");
   
-  // Show to page
   toPage.style.display = "block";
   toPage.classList.remove("hidden");
   toPage.classList.add("visible");
   
-  // If going to details page, update welcome message
+  // Handle special pages
   if (toPageId === "detailsPage") {
     updateWelcomeName();
+    // Fix scrolling on details page
+    fixDetailsPageScrolling();
   }
   
-  // Special page initializations
+  // Delay to ensure page is fully rendered
   setTimeout(function() {
-    // Special handling for specific pages
+    // Handle page-specific initializations
     if (toPageId === "prepVisitPage") {
-      console.log("Initializing Prep Visit page after transition");
-
-       // Debug: Check if logs exist in session storage
-       const logs = JSON.parse(sessionStorage.getItem("healthLogs") || "[]");
-       console.log("Current logs in sessionStorage before init:", logs.length, logs);
-
-      initializePrepVisitPage();
+      console.log("Initializing Prep Visit page");
+      // Make a clean slate for the prep visit page
+      refreshPrepVisitLogs();
     } else if (toPageId === "healthHistoryPage") {
       console.log("Refreshing health logs");
       displayHealthLogs();
+    } else if (toPageId === "visitRoadmapPage") {
+      console.log("Initializing Visit Roadmap page");
+      initializeVisitRoadmapPage();
     }
     
-    // Fix footer positioning
+    // Common updates for all pages
     fixAllFooters();
-    
-    // Update avatars and user names
     updateAllAvatars();
     updateUserNames();
     
-    // Add menu button listeners if the page has menu buttons
+    // Add menu button listeners if needed
     const hasMenuButtons = toPage.querySelectorAll('.menu-button').length > 0;
     if (hasMenuButtons) {
       addMenuButtonListeners();
     }
     
     console.log(`Transition complete from ${fromPageId} to ${toPageId}`);
-  }, 200); // Give time for DOM updates
+  }, 200);
 };
+
 window.testFallback = async (logText) => {
   console.log("Manually testing fallback mechanism");
   try {
@@ -3477,4 +3556,1593 @@ window.testFallback = async (logText) => {
     console.error("Fallback test failed", error);
   }
 };
+// Improved test logs function
+window.addTestLogs = function() {
+  const userAvatar = sessionStorage.getItem("selectedAvatar") || "https://placehold.co/67x67";
+  const now = new Date();
+  
+  // Create logs across multiple months for better testing
+  const testLogs = [
+    {
+      date: now.toISOString(),
+      text: "Today: Feeling quite tired with a mild headache and some dizziness when standing up quickly.",
+      avatar: userAvatar
+    },
+    {
+      date: new Date(now - 3 * 24 * 60 * 60 * 1000).toISOString(), // 3 days ago
+      text: "3 days ago: Woke up with slight sore throat and low fever of 99.8°F. Taking fluids and rest.",
+      avatar: userAvatar
+    },
+    {
+      date: new Date(now - 30 * 24 * 60 * 60 * 1000).toISOString(), // Last month
+      text: "Last month: Annual physical completed. Doctor noted slightly elevated blood pressure at 135/85.",
+      avatar: userAvatar
+    }
+  ];
+  
+  // Save to storage
+  sessionStorage.setItem("healthLogs", JSON.stringify(testLogs));
+  console.log(`Added ${testLogs.length} test logs`);
+  
+  alert("Test logs added! Navigate to Prep Visit page to see them.");
+  
+  // If on prep visit page already, refresh the display
+  const currentPage = document.querySelector('.page.visible');
+  if (currentPage && currentPage.id === "prepVisitPage") {
+    refreshPrepVisitLogs();
+  }
+};
+
+// Improved initialization function for the Visit Roadmap page
+function initializeVisitRoadmapPage(selectedLogs) {
+  console.log("Running improved Visit Roadmap page initialization");
+  
+  // Update user avatar
+  updateRoadmapUserInfo();
+  
+  // Set up page structure and styles
+  setupRoadmapPageStructure();
+  
+  // Setup navigation buttons with improved handlers
+  setupImprovedRoadmapNavigation();
+  
+  // Process selected logs
+  processSelectedLogs(selectedLogs);
+
+  // Add swipe functionality to cards
+  addSwipeToRoadmapCards();
+
+  updateQuestionCardIcon();
+
+  // Set up VitalAI panel - add this line
+  setupVitalAiPanel();
+
+  // Set up doctor questions screen - add this
+  setupDoctorQuestionsScreen();
+  
+  // Set up question button listeners - add this
+  setupQuestionsButtonListeners();
+  
+  // Fix footer positioning
+  fixFooterPositioning();
+  
+  console.log("Visit Roadmap page initialization complete");
+}
+
+// Add this new function to update the question card with the correct styling
+function updateQuestionCardIcon() {
+  const questionsCard = document.getElementById("questionsCard");
+  if (questionsCard) {
+    // Apply gradient background to the entire card
+    questionsCard.style.background = "linear-gradient(180deg, #B579D0 0%, #AE7CD1 24%, #5A93D9 53%)";
+    
+    // First, clear ALL existing content
+    questionsCard.innerHTML = '';
+    
+    // Create fresh content with only what we want
+    const newContent = document.createElement("div");
+    newContent.className = "questions-content";
+    newContent.style.display = "flex";
+    newContent.style.flexDirection = "column";
+    newContent.style.alignItems = "center";
+    newContent.style.justifyContent = "center";
+    newContent.style.height = "100%";
+    newContent.style.padding = "20px";
+    
+    // Add only the content we want
+    newContent.innerHTML = `
+      <h2 class="card-title" style="color: white; text-align: center; font-size: 35px; font-weight: 700; margin-bottom: 10px; font-family: 'Urbanist', sans-serif;">Questions</h2>
+      <div class="question-underline" style="width: 60px; height: 4px; background: white; margin: 0 auto 20px;"></div>
+      
+      <p class="question-instruction" style="color: white; text-align: center; font-size: 16px; font-family: 'Urbanist', sans-serif; margin: 20px 0;">
+        Tap here to see your prepared questions for your doctor.
+      </p>
+      
+      <!-- Type button without circle background -->
+      <div style="text-align: center; margin: 30px auto;">
+        <img src="./imgs/type-button.png" alt="Questions" style="width: 75px; height: 75px;">
+      </div>
+    `;
+    
+    // Add the new content to the card
+    questionsCard.appendChild(newContent);
+    
+    // Make sure the card has proper styling
+    questionsCard.style.borderRadius = "10px";
+    questionsCard.style.padding = "20px";
+    questionsCard.style.boxShadow = "0px 4px 10px rgba(0, 0, 0, 0.1)";
+    
+    // This should remove any card-title element that might be elsewhere in the card
+    const extraTitles = questionsCard.querySelectorAll('.card-title:not(.questions-content .card-title)');
+    extraTitles.forEach(title => title.remove());
+    
+    // Remove any purple lines that might be from the original card template
+    const extraLines = questionsCard.querySelectorAll('div[class*="underline"]:not(.questions-content .question-underline)');
+    extraLines.forEach(line => line.remove());
+  }
+}
+
+
+// Function to update user info on the roadmap page
+function updateRoadmapUserInfo() {
+  const userAvatar = document.getElementById("roadmapUserAvatar");
+  
+  if (userAvatar) {
+    // Get stored user data
+    const storedAvatar = sessionStorage.getItem("selectedAvatar") || "https://placehold.co/40x40";
+    
+    // Update avatar
+    userAvatar.src = storedAvatar;
+  }
+}
+
+// Function to setup roadmap navigation buttons
+function setupRoadmapNavigation() {
+  const navButtons = document.querySelectorAll(".roadmap-nav-btn");
+  
+  navButtons.forEach(button => {
+    button.addEventListener("click", function() {
+      // Remove active class from all buttons
+      navButtons.forEach(btn => btn.classList.remove("active"));
+      
+      // Add active class to clicked button
+      this.classList.add("active");
+      
+      // Handle different navigation types
+      const target = this.dataset.target;
+      handleRoadmapNavigation(target);
+    });
+  });
+}
+
+// Function to handle roadmap navigation based on button clicked
+function handleRoadmapNavigation(target) {
+  console.log(`Navigation to ${target}`);
+  
+  // Get the instruction text element
+  const instructionText = document.querySelector(".roadmap-instruction");
+  
+  // Hide/show instruction text based on selected tab
+  if (instructionText) {
+    if (target === "summary") {
+      instructionText.style.display = "block";
+    } else {
+      instructionText.style.display = "none";
+    }
+  }
+  
+  // Handle different targets
+  switch(target) {
+    case "summary":
+      showRoadmapCard("summaryCard");
+      break;
+    case "vitalai":
+      // For now, just show symptoms card
+      showRoadmapCard("symptomsCard");
+      break;
+    case "questions":
+      showRoadmapCard("questionsCard");
+      break;
+    default:
+      showRoadmapCard("summaryCard");
+  }
+}
+
+// Function to show a specific card and hide others
+function showRoadmapCard(cardId) {
+  // Hide all cards
+  const cards = document.querySelectorAll(".roadmap-card");
+  cards.forEach(card => card.classList.remove("visible"));
+  
+  // Show the requested card
+  const targetCard = document.getElementById(cardId);
+  if (targetCard) {
+    targetCard.classList.add("visible");
+  }
+}
+
+// Function to setup card switching with buttons
+function setupCardSwitching() {
+  // Array of card IDs in order
+  const cardIds = ["summaryCard", "symptomsCard", "timelineCard", "impactCard", "questionsCard"];
+  
+  // Setup expand buttons to navigate to next card
+  const expandButtons = document.querySelectorAll(".card-btn.expand");
+  expandButtons.forEach(button => {
+    button.addEventListener("click", function() {
+      const currentCard = this.closest(".roadmap-card");
+      const currentIndex = cardIds.indexOf(currentCard.id);
+      
+      // Show next card if available, otherwise stay on current
+      const nextIndex = currentIndex < cardIds.length - 1 ? currentIndex + 1 : currentIndex;
+      showRoadmapCard(cardIds[nextIndex]);
+    });
+  });
+  
+  // Questions card onclick handler
+  const questionsCard = document.getElementById("questionsCard");
+  if (questionsCard) {
+    questionsCard.addEventListener("click", function() {
+      // Show questions dialog or expand card
+      console.log("Questions card clicked");
+      
+      // For now, just show an alert as example
+      alert("This would show detailed questions for your doctor.");
+    });
+  }
+}
+
+// Function to process selected logs through API and update cards
+async function processSelectedLogs(selectedLogs) {
+  try {
+    console.log("Processing logs through API...");
+    
+    // If no logs provided, try to get from sessionStorage
+    if (!selectedLogs || selectedLogs.length === 0) {
+      console.log("No logs provided, checking sessionStorage");
+      
+      // Get selected log IDs
+      const selectedLogIds = JSON.parse(sessionStorage.getItem("selectedLogs") || "[]");
+      
+      // Get all logs
+      const allLogs = JSON.parse(sessionStorage.getItem("healthLogs") || "[]");
+      
+      // Filter to only selected logs
+      selectedLogs = allLogs.filter(log => {
+        const logId = `${new Date(log.date).toISOString()}-${log.text.substring(0, 20).replace(/[^a-zA-Z0-9]/g, '')}`;
+        return selectedLogIds.includes(logId);
+      });
+      
+      console.log("Retrieved selected logs from storage:", selectedLogs);
+    }
+    
+    // If still no logs, show placeholder content
+    if (!selectedLogs || selectedLogs.length === 0) {
+      console.log("No logs to process, showing placeholder content");
+      return;
+    }
+    
+    // For full implementation, you would call your API here
+    // For now, we'll simulate a response
+    
+    // Mock API call (replace with actual API call)
+    const apiResponse = await simulateApiCall(selectedLogs);
+    
+    // Update cards with API response
+    updateCardsWithApiResponse(apiResponse);
+    
+  } catch (error) {
+    console.error("Error processing logs:", error);
+  }
+}
+
+// Function to simulate API call (replace with actual API call)
+async function simulateApiCall(logs) {
+  // Simulate network delay
+  await new Promise(resolve => setTimeout(resolve, 500));
+  
+  // Create a simulated response based on the logs
+  const symptoms = [];
+  const timeline = [];
+  const impact = [];
+  
+  // Extract information from logs
+  logs.forEach(log => {
+    const text = log.text.toLowerCase();
+    
+    // Extract symptoms (simplified for demo)
+    if (text.includes("headache")) symptoms.push("Headaches");
+    if (text.includes("tired") || text.includes("fatigue")) symptoms.push("Fatigue");
+    if (text.includes("cough")) symptoms.push("Cough");
+    if (text.includes("fever")) symptoms.push("Fever");
+    
+    // Add to timeline
+    timeline.push({
+      date: new Date(log.date),
+      text: log.text
+    });
+    
+    // Extract impact (simplified for demo)
+    if (text.includes("work") || text.includes("job")) impact.push("Work performance");
+    if (text.includes("sleep")) impact.push("Sleep quality");
+    if (text.includes("exercise")) impact.push("Exercise routine");
+  });
+  
+  // Create a summary based on common symptoms
+  const uniqueSymptoms = [...new Set(symptoms)];
+  const summary = `You've been experiencing ${uniqueSymptoms.join(", ")} that have affected your daily life. These symptoms started recently and are concerning to you.`;
+  
+  // Sort timeline by date
+  timeline.sort((a, b) => a.date - b.date);
+  
+  // Create a timeline summary
+  const timelineText = timeline.length > 0 ? 
+    `Your symptoms began around ${timeline[0].date.toLocaleDateString()}. ${uniqueSymptoms.join(", ")} have been consistent since then.` :
+    "Your symptoms have been developing over the past few weeks.";
+  
+  // Create an impact summary
+  const uniqueImpact = [...new Set(impact)];
+  const impactText = uniqueImpact.length > 0 ?
+    `These symptoms have affected your ${uniqueImpact.join(", ")}.` :
+    "These symptoms have been affecting your daily activities.";
+  
+  // Create questions for the doctor
+  const questions = [
+    "What could be causing these symptoms?",
+    "Should I get any tests done?",
+    "What treatments would you recommend?",
+    "Are there any lifestyle changes I should make?"
+  ];
+  
+  // Return the simulated API response
+  return {
+    summary,
+    symptoms: uniqueSymptoms,
+    timeline: timelineText,
+    impact: impactText,
+    questions
+  };
+}
+
+// Function to update cards with API response
+function updateCardsWithApiResponse(apiResponse) {
+  // Update summary card
+  const summaryContent = document.querySelector("#summaryCard .card-content");
+  if (summaryContent) {
+    summaryContent.innerHTML = `
+      <p class="card-paragraph">
+        <strong>Summary:</strong>
+      </p>
+      <p class="card-paragraph">
+        ${apiResponse.summary}
+      </p>
+    `;
+  }
+  
+  // Update symptoms card
+  const symptomsContent = document.querySelector("#symptomsCard .card-content");
+  if (symptomsContent) {
+    let symptomsHtml = '';
+    apiResponse.symptoms.forEach(symptom => {
+      symptomsHtml += `
+        <p class="card-symptom">
+          <strong>${symptom}:</strong> Noted in your health logs
+        </p>
+      `;
+    });
+    symptomsContent.innerHTML = symptomsHtml;
+  }
+  
+  // Update timeline card
+  const timelineContent = document.querySelector("#timelineCard .card-content");
+  if (timelineContent) {
+    timelineContent.innerHTML = `
+      <p class="card-paragraph">
+        ${apiResponse.timeline}
+      </p>
+    `;
+  }
+  
+  // Update impact card
+  const impactContent = document.querySelector("#impactCard .card-content");
+  if (impactContent) {
+    impactContent.innerHTML = `
+      <p class="card-paragraph">
+        ${apiResponse.impact}
+      </p>
+    `;
+  }
+}
+
+// Function to handle the "Prep my doctor's notes" button click
+function prepDoctorsNotes() {
+  // Get selected logs
+  const selectedLogIds = JSON.parse(sessionStorage.getItem("selectedLogs") || "[]");
+  
+  // If no logs selected, show alert
+  if (selectedLogIds.length === 0) {
+    alert("Please select at least one health log to prepare doctor's notes.");
+    return;
+  }
+  
+  // Transition to visit roadmap page
+  const currentPage = document.querySelector('.page.visible');
+  if (currentPage && currentPage.id !== "visitRoadmapPage") {
+    transitionPages(currentPage.id, "visitRoadmapPage");
+    
+    // Initialize the visit roadmap page after transition
+    setTimeout(() => {
+      initializeVisitRoadmapPage();
+    }, 200);
+  }
+}
+
+// Fix the "Prep my doctor's notes" button to properly transition to the Visit Roadmap page
+function setupPrepNotesButtonHandler() {
+  console.log("Setting up improved prep notes button handler");
+  
+  // Find all prep notes buttons in the app
+  const prepNotesButtons = document.querySelectorAll(".prep-notes-button");
+  
+  if (prepNotesButtons.length === 0) {
+    console.error("Prep notes button not found in the DOM");
+    return;
+  }
+  
+  console.log(`Found ${prepNotesButtons.length} prep notes buttons`);
+  
+  // Set up each button
+  prepNotesButtons.forEach(button => {
+    // Clone to remove existing listeners
+    const newButton = button.cloneNode(true);
+    button.parentNode.replaceChild(newButton, button);
+    
+    // Add click event listener
+    newButton.addEventListener("click", function(event) {
+      // Prevent any default behavior
+      event.preventDefault();
+      event.stopPropagation();
+      
+      console.log("Prep doctor's notes button clicked");
+      
+      // Collect selected logs
+      const selectedLogs = [];
+      const selectedLogIds = [];
+      const checkboxes = document.querySelectorAll(".log-checkbox .checkbox.checked");
+      
+      console.log(`Found ${checkboxes.length} checked checkboxes`);
+      
+      checkboxes.forEach(checkbox => {
+        const card = checkbox.closest(".health-log-card");
+        if (card) {
+          const dateElement = card.querySelector(".log-date");
+          const textElement = card.querySelector(".log-text");
+          
+          if (dateElement && textElement) {
+            const date = dateElement.textContent;
+            const text = textElement.textContent;
+            
+            // Add to selected logs array
+            selectedLogs.push({
+              date: date,
+              text: text
+            });
+            
+            // Create a unique ID
+            const logId = `${date}-${text.substring(0, 20).replace(/[^a-zA-Z0-9]/g, '')}`;
+            selectedLogIds.push(logId);
+          }
+        }
+      });
+      
+      console.log(`Selected ${selectedLogs.length} logs for doctor's notes`);
+      
+      // Store in sessionStorage
+      sessionStorage.setItem("selectedLogs", JSON.stringify(selectedLogIds));
+      sessionStorage.setItem("selectedLogsData", JSON.stringify(selectedLogs));
+      
+      // Show alert if no logs selected
+      if (selectedLogs.length === 0) {
+        alert("Please select at least one health log to prepare doctor's notes.");
+        return;
+      }
+      
+      // Force-fix the Visit Roadmap page visibility
+      const visitRoadmapPage = document.getElementById("visitRoadmapPage");
+      if (visitRoadmapPage) {
+        // Ensure page is in the correct state before transition
+        visitRoadmapPage.style.display = "none";
+        visitRoadmapPage.classList.remove("visible");
+        visitRoadmapPage.classList.add("hidden");
+        
+        console.log("Visit Roadmap page prepared for transition");
+      } else {
+        console.error("Visit Roadmap page element not found!");
+        return;
+      }
+      
+      // Get current visible page
+      const currentPage = document.querySelector(".page.visible");
+      if (!currentPage) {
+        console.error("No visible page found");
+        return;
+      }
+      
+      console.log(`Current page: ${currentPage.id}, transitioning to visitRoadmapPage`);
+      
+      // Transition to visit roadmap page using direct DOM manipulation
+      // instead of relying on the transitionPages function
+      currentPage.style.display = "none";
+      currentPage.classList.remove("visible");
+      currentPage.classList.add("hidden");
+      
+      visitRoadmapPage.style.display = "block";
+      visitRoadmapPage.classList.remove("hidden");
+      visitRoadmapPage.classList.add("visible");
+      
+      // Initialize the roadmap page content
+      setTimeout(() => {
+        console.log("Initializing Visit Roadmap page content");
+        initializeVisitRoadmapPage(selectedLogs);
+      }, 100);
+    });
+  });
+  
+  console.log("Prep notes button handler improved successfully");
+}
+
+function debugVisitRoadmapPage() {
+  const visitRoadmapPage = document.getElementById("visitRoadmapPage");
+  console.log("Visit Roadmap page exists:", !!visitRoadmapPage);
+  
+  if (visitRoadmapPage) {
+    console.log("Visit Roadmap page display:", window.getComputedStyle(visitRoadmapPage).display);
+    console.log("Visit Roadmap page visibility:", window.getComputedStyle(visitRoadmapPage).visibility);
+    console.log("Visit Roadmap page classes:", visitRoadmapPage.className);
+  }
+  
+  // Check if the page is in the right place in the DOM
+  const appWrapper = document.querySelector(".app-wrapper");
+  if (appWrapper) {
+    const isDirectChild = Array.from(appWrapper.children).some(child => child.id === "visitRoadmapPage");
+    console.log("Visit Roadmap page is direct child of app-wrapper:", isDirectChild);
+  }
+}
+// Fix the roadmap page structure
+function setupRoadmapPageStructure() {
+  const visitRoadmapPage = document.getElementById("visitRoadmapPage");
+  
+  if (!visitRoadmapPage) {
+    console.error("Visit Roadmap page not found");
+    return;
+  }
+  
+  // Ensure the page has the right structure
+  visitRoadmapPage.style.position = "relative";
+  visitRoadmapPage.style.height = "100%";
+  visitRoadmapPage.style.overflow = "hidden";
+  
+  // Fix the content area
+  const roadmapContent = visitRoadmapPage.querySelector(".roadmap-content");
+  if (roadmapContent) {
+    roadmapContent.style.overflow = "auto";
+    roadmapContent.style.height = "calc(100% - 114px)"; // Subtract header height
+    roadmapContent.style.paddingBottom = "90px"; // Space for footer
+    
+    // Make sure cards take full width
+    const cardContainer = roadmapContent.querySelector(".roadmap-cards-container");
+    if (cardContainer) {
+      cardContainer.style.width = "100%";
+      cardContainer.style.position = "relative";
+      cardContainer.style.minHeight = "300px";
+      
+      // Fix positioning of all cards
+      const cards = cardContainer.querySelectorAll(".roadmap-card");
+      cards.forEach(card => {
+        card.style.position = "absolute";
+        card.style.top = "0";
+        card.style.left = "0";
+        card.style.width = "100%";
+        card.style.opacity = "0";
+        card.style.pointerEvents = "none";
+        card.style.transition = "opacity 0.3s ease-in-out";
+        
+        // Add card indices for swipe navigation
+        for (let i = 0; i < cards.length; i++) {
+          cards[i].dataset.index = i;
+        }
+      });
+      
+      // Make the first card visible
+      if (cards.length > 0) {
+        cards[0].style.opacity = "1";
+        cards[0].style.pointerEvents = "auto";
+        cards[0].classList.add("visible");
+      }
+    }
+  }
+  
+  // Fix the footer
+  const footer = visitRoadmapPage.querySelector(".tutorial-footer");
+  if (footer) {
+    footer.style.position = "absolute";
+    footer.style.bottom = "0";
+    footer.style.left = "0";
+    footer.style.width = "100%";
+    footer.style.zIndex = "999";
+  }
+}
+
+// Set up improved roadmap navigation
+function setupImprovedRoadmapNavigation() {
+  const navButtons = document.querySelectorAll(".roadmap-nav-btn");
+  
+  if (navButtons.length === 0) {
+    console.error("Navigation buttons not found");
+    return;
+  }
+  
+  // Remove existing listeners by cloning
+  navButtons.forEach(button => {
+    const newButton = button.cloneNode(true);
+    button.parentNode.replaceChild(newButton, button);
+    
+    // Add click event listener
+    newButton.addEventListener("click", function(event) {
+      // Prevent default behavior
+      event.preventDefault();
+      event.stopPropagation();
+      
+      // Remove active class from all buttons
+      navButtons.forEach(btn => btn.classList.remove("active"));
+      
+      // Add active class to clicked button
+      this.classList.add("active");
+      
+      // Get target
+      const target = this.dataset.target;
+      
+      // Handle navigation
+      handleImprovedRoadmapNavigation(target);
+    });
+  });
+  
+  // Make sure the summary button is active by default
+  const summaryButton = document.querySelector(".roadmap-nav-btn[data-target='summary']");
+  if (summaryButton) {
+    summaryButton.classList.add("active");
+  }
+}
+
+// Update handleImprovedRoadmapNavigation to show questions when Questions button is clicked
+function handleImprovedRoadmapNavigation(target) {
+  console.log(`Navigation to ${target}`);
+  
+  // Hide all questions list if visible
+  const questionsListContainer = document.getElementById("doctorQuestionsList");
+  if (questionsListContainer) {
+    questionsListContainer.classList.remove("visible");
+  }
+  
+  // Reset page title
+  const roadmapTitle = document.querySelector(".roadmap-title");
+  if (roadmapTitle) {
+    roadmapTitle.textContent = "Visit Roadmap";
+  }
+  
+  // Get all cards
+  const cards = document.querySelectorAll(".roadmap-card");
+  
+  // Hide all cards
+  cards.forEach(card => {
+    card.style.opacity = "0";
+    card.style.pointerEvents = "none";
+    card.classList.remove("visible");
+  });
+  
+  // Get all nav buttons
+  const navButtons = document.querySelectorAll(".roadmap-nav-btn");
+  
+  // Reset all button colors
+  navButtons.forEach(btn => {
+    if (btn.dataset.target === 'summary') {
+      btn.style.backgroundColor = "#B478CF"; // Purple
+    } else if (btn.dataset.target === 'vitalai') {
+      btn.style.backgroundColor = "#B478CF"; // Purple
+    } else if (btn.dataset.target === 'questions') {
+      btn.style.backgroundColor = "#4E95D9"; // Blue
+    }
+  });
+  
+  // Show the appropriate content based on target
+  switch(target) {
+    case "summary":
+      showRoadmapCardById("summaryCard");
+      // Hide VitalAI panel if visible
+      const vitalAiPanel = document.getElementById("vitalAiPanel");
+      if (vitalAiPanel) vitalAiPanel.classList.remove("visible");
+      
+      // Show navigation buttons
+      const navButtons = document.querySelector(".roadmap-card-nav");
+      if (navButtons) navButtons.style.display = "flex";
+      break;
+    case "vitalai":
+      showRoadmapCardById("symptomsCard");
+      // Change button color to blue
+      const vitalAiButton = document.querySelector(".roadmap-nav-btn[data-target='vitalai']");
+      if (vitalAiButton) vitalAiButton.style.backgroundColor = "#4E95D9"; // Blue
+      
+      // Show navigation buttons
+      const navButtons2 = document.querySelector(".roadmap-card-nav");
+      if (navButtons2) navButtons2.style.display = "flex";
+      break;
+    case "questions":
+      // Show doctor questions instead of the questions card
+      showDoctorQuestions();
+      
+      // Change button color to blue
+      const questionsButton = document.querySelector(".roadmap-nav-btn[data-target='questions']");
+      if (questionsButton) questionsButton.style.backgroundColor = "#4E95D9"; // Blue
+      
+      // Hide VitalAI panel if visible
+      const vitalAiPanel2 = document.getElementById("vitalAiPanel");
+      if (vitalAiPanel2) vitalAiPanel2.classList.remove("visible");
+      break;
+    default:
+      showRoadmapCardById("summaryCard");
+      // Hide VitalAI panel if visible
+      const vitalAiPanel3 = document.getElementById("vitalAiPanel");
+      if (vitalAiPanel3) vitalAiPanel3.classList.remove("visible");
+      
+      // Show navigation buttons
+      const navButtons3 = document.querySelector(".roadmap-card-nav");
+      if (navButtons3) navButtons3.style.display = "flex";
+  }
+}
+
+// Add event listener for question card click to show the questions view
+function setupQuestionsCardListener() {
+  const questionsCard = document.getElementById("questionsCard");
+  if (questionsCard) {
+    questionsCard.addEventListener("click", function() {
+      // Get the questions button
+      const questionsButton = document.querySelector(".roadmap-nav-btn[data-target='questions']");
+      if (questionsButton) {
+        // Simulate clicking the questions button
+        questionsButton.click();
+      }
+    });
+  }
+}
+
+// Show a specific roadmap card by ID
+function showRoadmapCardById(cardId) {
+  const card = document.getElementById(cardId);
+  
+  if (!card) {
+    console.error(`Card ${cardId} not found`);
+    return;
+  }
+  
+  // Show the card
+  card.style.opacity = "1";
+  card.style.pointerEvents = "auto";
+  card.classList.add("visible");
+  
+  // Scroll to the top of the card content
+  const cardContent = card.querySelector(".card-content");
+  if (cardContent) {
+    cardContent.scrollTop = 0;
+  }
+  
+  console.log(`Showed card: ${cardId}`);
+}
+
+// Add swipe functionality to roadmap cards
+function addSwipeToRoadmapCards() {
+  const cardContainer = document.querySelector(".roadmap-cards-container");
+  
+  if (!cardContainer) {
+    console.error("Card container not found");
+    return;
+  }
+  
+  const cards = cardContainer.querySelectorAll(".roadmap-card");
+  
+  if (cards.length === 0) {
+    console.error("No cards found");
+    return;
+  }
+  
+  // Add navigation buttons
+  const navButtons = document.createElement("div");
+  navButtons.className = "roadmap-card-nav";
+  navButtons.innerHTML = `
+    <div class="roadmap-card-nav-button prev">❮</div>
+    <div class="roadmap-card-nav-button next">❯</div>
+  `;
+  
+  // Append to container
+  cardContainer.appendChild(navButtons);
+  
+  // Style the navigation buttons
+  const styleElement = document.createElement("style");
+  styleElement.textContent = `
+    .roadmap-card-nav {
+      position: absolute;
+      top: 50%;
+      left: 0;
+      right: 0;
+      width: 100%;
+      display: flex;
+      justify-content: space-between;
+      padding: 0 10px;
+      box-sizing: border-box;
+      transform: translateY(-50%);
+      z-index: 1000;
+      pointer-events: none;
+    }
+    
+    .roadmap-card-nav-button {
+      width: 40px;
+      height: 40px;
+      background: rgba(180, 120, 207, 0.8);
+      color: white;
+      border-radius: 50%;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      cursor: pointer;
+      pointer-events: auto;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+      font-weight: bold;
+      user-select: none;
+      font-size: 20px;
+      opacity: 0.9;
+      margin: 0 5px;
+    }
+    
+    .roadmap-card-nav-button:hover {
+      background: rgba(180, 120, 207, 1);
+      opacity: 1;
+    }
+    
+    /* Make sure the card content doesn't get blocked by arrows */
+    .roadmap-card .card-content {
+      padding: 0 50px;
+      margin: 0 auto;
+      max-width: 280px;
+    }
+    
+    /* Special styling for questions card */
+    #questionsCard .card-title {
+      font-size: 35px;
+      font-weight: 700;
+      color: black;
+      text-align: left;
+      margin-bottom: 10px;
+      font-family: 'Urbanist', sans-serif;
+    }
+    
+    #questionsCard .question-underline {
+      width: 60px;
+      height: 4px;
+      background: #B478CF;
+      margin-bottom: 20px;
+    }
+    
+    /* Additional button styling fix for card navigation */
+    .card-btn {
+      z-index: 10;
+      position: relative;
+    }
+  `;
+  
+  document.head.appendChild(styleElement);
+  
+  // Set up touch and click event listeners
+  let currentIndex = 0;
+  
+  // Touch variables
+  let touchStartX = 0;
+  let touchEndX = 0;
+  
+  // Add touch event listeners to cards for swipe
+  cards.forEach(card => {
+    card.addEventListener("touchstart", function(e) {
+      touchStartX = e.changedTouches[0].screenX;
+    });
+    
+    card.addEventListener("touchend", function(e) {
+      touchEndX = e.changedTouches[0].screenX;
+      handleSwipe();
+    });
+  });
+  
+  // Handle swipe logic
+  function handleSwipe() {
+    const swipeThreshold = 50; // Minimum distance to register a swipe
+    
+    if (touchEndX < touchStartX - swipeThreshold) {
+      // Swipe left (next)
+      navigateCard(1);
+    } else if (touchEndX > touchStartX + swipeThreshold) {
+      // Swipe right (previous)
+      navigateCard(-1);
+    }
+  }
+  
+  // Set up click navigation
+  const prevButton = navButtons.querySelector(".roadmap-card-nav-button.prev");
+  const nextButton = navButtons.querySelector(".roadmap-card-nav-button.next");
+  
+  if (prevButton && nextButton) {
+    prevButton.addEventListener("click", function() {
+      navigateCard(-1);
+    });
+    
+    nextButton.addEventListener("click", function() {
+      navigateCard(1);
+    });
+  }
+  
+  // Navigation function
+  function navigateCard(direction) {
+    // Get current visible card
+    const visibleCard = document.querySelector(".roadmap-card.visible");
+    
+    if (!visibleCard) {
+      // If no card is visible, show the first one
+      showRoadmapCardById("summaryCard");
+      return;
+    }
+    
+    // Get current index
+    currentIndex = parseInt(visibleCard.dataset.index || "0");
+    
+    // Calculate new index
+    let newIndex = currentIndex + direction;
+    
+    // Boundary check
+    if (newIndex < 0) newIndex = 0;
+    if (newIndex >= cards.length) newIndex = cards.length - 1;
+    
+    // If index didn't change, do nothing
+    if (newIndex === currentIndex) return;
+    
+    // Hide all cards
+    cards.forEach(card => {
+      card.style.opacity = "0";
+      card.style.pointerEvents = "none";
+      card.classList.remove("visible");
+    });
+    
+    // Show the new card
+    cards[newIndex].style.opacity = "1";
+    cards[newIndex].style.pointerEvents = "auto";
+    cards[newIndex].classList.add("visible");
+    
+    // Update current index
+    currentIndex = newIndex;
+    
+    console.log(`Navigated to card index: ${currentIndex}`);
+    
+    // Update navigation tab if needed
+    updateNavTabForCard(cards[currentIndex].id);
+  }
+  
+  // Update navigation tab to match current card
+  function updateNavTabForCard(cardId) {
+    const navButtons = document.querySelectorAll(".roadmap-nav-btn");
+    
+    // Remove active class from all buttons
+    navButtons.forEach(btn => btn.classList.remove("active"));
+    
+    // Set the appropriate button as active
+    let targetTab = "summary";
+    
+    if (cardId === "questionsCard") {
+      targetTab = "questions";
+    } else if (cardId === "symptomsCard" || cardId === "timelineCard" || cardId === "impactCard") {
+      targetTab = "vitalai";
+    }
+    
+    // Find and activate the right button
+    const activeButton = document.querySelector(`.roadmap-nav-btn[data-target='${targetTab}']`);
+    if (activeButton) {
+      activeButton.classList.add("active");
+    }
+  }
+  
+  console.log("Swipe navigation added to roadmap cards");
+}
+
+// Make sure these changes run once the DOM is loaded
+document.addEventListener("DOMContentLoaded", function() {
+  console.log("Adding Visit Roadmap Page fixes");
+  
+  // Setup the improved prep notes button handler
+  setupPrepNotesButtonHandler();
+  
+  // Make sure the Visit Roadmap page has proper structure
+  const visitRoadmapPage = document.getElementById("visitRoadmapPage");
+  if (visitRoadmapPage) {
+    setupRoadmapPageStructure();
+  }
+});
+
+// Add this function to handle the VitalAI slide-up panel
+function setupVitalAiPanel() {
+  // First, add the VitalAI panel HTML structure to the page
+  const visitRoadmapPage = document.getElementById("visitRoadmapPage");
+  if (!visitRoadmapPage) return;
+  
+  // Create the VitalAI slide-up panel
+  const vitalAiPanel = document.createElement("div");
+  vitalAiPanel.id = "vitalAiPanel";
+  vitalAiPanel.className = "vital-ai-panel";
+  vitalAiPanel.innerHTML = `
+    <div class="vital-ai-content">
+      <button class="close-ai-panel">
+        <img src="./imgs/white-x-button.png" alt="Close">
+      </button>
+      
+      <h2 class="vital-ai-title">Ask questions you can't remember...</h2>
+      
+      <div class="record-container">
+          <img src="./imgs/record-button.png" alt="Record" class="record-button">
+          <div class="record-text">Hold to talk</div>
+      </div>
+      
+      <div class="toggle-container">
+        <span class="toggle-text">Toggle to type</span>
+        <label class="toggle-switch">
+          <input type="checkbox" id="aiToggleInput" class="toggle-checkbox">
+          <span class="toggle-slider"></span>
+        </label>
+      </div>
+    </div>
+  `;
+  
+  // Add the panel to the page
+  visitRoadmapPage.appendChild(vitalAiPanel);
+  
+  // Add styling for the panel
+  const styleElement = document.createElement("style");
+  styleElement.textContent = `
+    .vital-ai-panel {
+      position: absolute;
+      width: 390px;
+      height: 616px;
+      bottom: -616px; /* Start off-screen */
+      left: 0;
+      z-index: 1000;
+      background: linear-gradient(180deg, #B579D0 0%, #AE7CD1 24%, #5A93D9 53%);
+      border-radius: 20px 20px 0 0;
+      transition: bottom 0.3s ease-in-out;
+      box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.2);
+    }
+    
+    .vital-ai-panel.visible {
+      bottom: 0; /* Slide up to visible position */
+    }
+    
+    .vital-ai-content {
+      padding: 30px 20px;
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      color: white;
+    }
+    
+    .close-ai-panel {
+      position: absolute;
+      top: 20px;
+      right: 20px;
+      background: transparent;
+      border: none;
+      cursor: pointer;
+    }
+    
+    .close-ai-panel img {
+      width: 24px;
+      height: 24px;
+    }
+    
+    .vital-ai-title {
+      font-size: 28px;
+      font-weight: 600;
+      text-align: center;
+      margin-top: 40px;
+      font-family: 'Urbanist', sans-serif;
+      color: white;
+    }
+    
+    .record-container {
+      margin-top: 60px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+    
+    .record-button-container {
+      width: 130px;
+      height: 130px;
+      background: white;
+      border-radius: 20px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      margin-bottom: 20px;
+    }
+    
+    .record-button {
+      width: 100px;
+      height: 100px;
+    }
+    
+    .record-text {
+      font-size: 18px;
+      font-weight: 600;
+      margin-top: 10px;
+      font-family: 'Urbanist', sans-serif;
+    }
+    
+    .toggle-container {
+      margin-top: auto;
+      margin-bottom: 40px;
+      display: flex;
+      align-items: center;
+      gap: 15px;
+    }
+    
+    .toggle-text {
+      font-size: 16px;
+      font-weight: 600;
+      font-family: 'Urbanist', sans-serif;
+    }
+    
+    .toggle-switch {
+      position: relative;
+      display: inline-block;
+      width: 48px;
+      height: 24px;
+    }
+    
+    .toggle-checkbox {
+      opacity: 0;
+      width: 0;
+      height: 0;
+    }
+    
+    .toggle-slider {
+      position: absolute;
+      cursor: pointer;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background-color: #ccc;
+      border-radius: 34px;
+      transition: .4s;
+    }
+    
+    .toggle-slider:before {
+      position: absolute;
+      content: "";
+      height: 18px;
+      width: 18px;
+      left: 3px;
+      bottom: 3px;
+      background-color: white;
+      border-radius: 50%;
+      transition: .4s;
+    }
+    
+    .toggle-checkbox:checked + .toggle-slider {
+      background-color: #7F56D9;
+    }
+    
+    .toggle-checkbox:checked + .toggle-slider:before {
+      transform: translateX(24px);
+    }
+  `;
+  document.head.appendChild(styleElement);
+  
+  // Set up event listeners for VitalAI button
+  setupVitalAiToggle();
+}
+
+// Add this function to toggle the VitalAI panel
+function setupVitalAiToggle() {
+  // Get the VitalAI navigation button
+  const vitalAiButton = document.querySelector(".roadmap-nav-btn[data-target='vitalai']");
+  const vitalAiPanel = document.getElementById("vitalAiPanel");
+  const closeButton = document.querySelector(".close-ai-panel");
+  
+  if (!vitalAiButton || !vitalAiPanel || !closeButton) return;
+  
+  // Set up click event for the VitalAI button
+  vitalAiButton.addEventListener("click", function() {
+    // Show the panel when VitalAI button is selected
+    vitalAiPanel.classList.add("visible");
+    
+    // Make sure the button is active
+    const navButtons = document.querySelectorAll(".roadmap-nav-btn");
+    navButtons.forEach(btn => btn.classList.remove("active"));
+    vitalAiButton.classList.add("active");
+    vitalAiButton.style.backgroundColor = "#4E95D9"; // Make it blue
+  });
+  
+  // Set up close button
+  closeButton.addEventListener("click", function() {
+    vitalAiPanel.classList.remove("visible");
+  });
+  
+  // Set up toggle behavior
+  const toggleInput = document.getElementById("aiToggleInput");
+  if (toggleInput) {
+    toggleInput.addEventListener("change", function() {
+      // In a real app, this would toggle between voice and text input
+      console.log("Toggle changed:", toggleInput.checked);
+    });
+  }
+}
+
+// Add this function to handle displaying the doctor questions screen
+function setupDoctorQuestionsScreen() {
+  // We'll create the doctor questions content differently
+  // Instead of a separate screen, we'll create content that replaces the cards
+  
+  // Create questions container
+  const questionsListContainer = document.createElement("div");
+  questionsListContainer.id = "doctorQuestionsList";
+  questionsListContainer.className = "doctor-questions-list";
+  
+  // Style for questions section
+  const styleElement = document.createElement("style");
+  styleElement.textContent = `
+    .doctor-questions-list {
+      display: none;
+      flex-direction: column;
+      width: 100%;
+      padding: 15px;
+      margin-top: 20px;
+    }
+    
+    .doctor-questions-list.visible {
+      display: flex;
+    }
+    
+    .doctor-questions-title {
+      width: 335px;
+      height: 39px;
+      margin: 0 auto 15px;
+      font-family: 'Urbanist', sans-serif;
+      font-weight: 600;
+      font-size: 25px;
+      line-height: 125%;
+      letter-spacing: 0.5px;
+      text-align: center;
+      color: black;
+    }
+    
+    .questions-instruction {
+      width: 353px;
+      height: 44px;
+      margin: 0 auto 20px;
+      font-family: 'Urbanist', sans-serif;
+      font-weight: 400;
+      font-size: 14px;
+      line-height: 125%;
+      letter-spacing: 0.28px;
+      text-align: center;
+      color: black;
+    }
+    
+    .questions-container {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      margin-bottom: 20px;
+    }
+    
+    .question-item {
+      width: 322px;
+      height: 56px;
+      margin: 0 auto;
+      background: white;
+      border-radius: 5px;
+      box-shadow: 0px 4px 4px rgba(0, 0, 0, 0.25);
+      display: flex;
+      align-items: center;
+      padding: 0 15px;
+      position: relative;
+    }
+    
+    .question-text {
+      flex: 1;
+      font-family: 'Urbanist', sans-serif;
+      font-weight: 600;
+      font-size: 12px;
+      color: black;
+    }
+    
+    .question-actions {
+      display: flex;
+      gap: 10px;
+    }
+    
+    .action-container {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      width: 47px;
+    }
+    
+    .action-label {
+      font-family: 'Urbanist', sans-serif;
+      font-weight: 400;
+      font-size: 8px;
+      line-height: 125%;
+      letter-spacing: 0.16px;
+      text-align: center;
+      color: black;
+      margin-bottom: 2px;
+    }
+    
+    .action-button {
+      width: 20px;
+      height: 20px;
+      border: 1px solid black;
+      border-radius: 3px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      cursor: pointer;
+    }
+    
+    .answered-button {
+      background-color: #20B5C4;
+      color: white;
+    }
+    
+    .remove-button {
+      background-color: white;
+      color: black;
+    }
+    
+    .check-icon {
+      font-size: 14px;
+      font-weight: bold;
+    }
+    
+    .x-icon {
+      font-size: 14px;
+      font-weight: bold;
+    }
+    
+    .add-question-container {
+      display: flex;
+      align-items: center;
+      margin-top: 10px;
+      padding: 0 30px;
+    }
+    
+    .add-question-button {
+      width: 40px;
+      height: 40px;
+      background: white;
+      border-radius: 50%;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      margin-right: 15px;
+      box-shadow: 0px 4px 4px rgba(0, 0, 0, 0.25);
+    }
+    
+    .plus-icon {
+      font-size: 24px;
+      font-weight: bold;
+      color: #B478CF;
+    }
+    
+    .add-question-text {
+      font-family: 'Urbanist', sans-serif;
+      font-weight: 600;
+      font-size: 16px;
+      color: black;
+    }
+  `;
+  document.head.appendChild(styleElement);
+  
+  // Add the container to the roadmap content area
+  const roadmapContent = document.querySelector(".roadmap-content");
+  if (roadmapContent) {
+    roadmapContent.appendChild(questionsListContainer);
+  }
+}
+
+
+
+// Function to show doctor questions
+function showDoctorQuestions() {
+  // Update page title
+  const roadmapTitle = document.querySelector(".roadmap-title");
+  if (roadmapTitle) {
+    roadmapTitle.textContent = "Questions for your Doctor";
+  }
+  
+  // Hide all roadmap cards
+  const roadmapCards = document.querySelectorAll(".roadmap-card");
+  roadmapCards.forEach(card => {
+    card.style.display = "none";
+  });
+  
+  // Hide card navigation buttons
+  const navButtons = document.querySelector(".roadmap-card-nav");
+  if (navButtons) {
+    navButtons.style.display = "none";
+  }
+  
+  // Get or create the questions list container
+  let questionsListContainer = document.getElementById("doctorQuestionsList");
+  if (!questionsListContainer) {
+    // Create container if it doesn't exist
+    questionsListContainer = document.createElement("div");
+    questionsListContainer.id = "doctorQuestionsList";
+    questionsListContainer.className = "doctor-questions-list";
+    
+    // Add it to roadmap content
+    const roadmapContent = document.querySelector(".roadmap-content");
+    if (roadmapContent) {
+      roadmapContent.appendChild(questionsListContainer);
+    }
+  }
+  
+  // Show and populate questions content
+  questionsListContainer.classList.add("visible");
+  questionsListContainer.innerHTML = `
+    <p class="questions-instruction">
+      Add any questions you want to ask your doctor. Use this list to ensure you get the information you need.
+    </p>
+    
+    <div class="questions-container">
+      <!-- Questions will be added here -->
+    </div>
+    
+    <div class="add-question-container">
+      <div class="add-question-button">
+        <span class="plus-icon">+</span>
+      </div>
+      <p class="add-question-text">Question missing?<br>Not a problem, click to add</p>
+    </div>
+  `;
+  
+  // Generate and add questions
+  generateDoctorQuestions(questionsListContainer.querySelector(".questions-container"));
+}
+
+// Function to generate 5 doctor questions
+function generateDoctorQuestions(container) {
+  // Sample questions for the prototype
+  const sampleQuestions = [
+    "What is the expected timeline for recovery?",
+    "Are there any support groups available?",
+    "Could this have to do with my new protein powder?",
+    "What are the next steps that I should take?",
+    "How can I prevent this condition from recurring in the future?"
+  ];
+  
+  // Clear container first
+  container.innerHTML = '';
+  
+  // Add the questions to the container
+  sampleQuestions.forEach(question => {
+    const questionItem = document.createElement("div");
+    questionItem.className = "question-item";
+    questionItem.innerHTML = `
+      <div class="question-text">${question}</div>
+      <div class="question-actions">
+        <div class="action-container">
+          <div class="action-label">Answered</div>
+          <div class="action-button answered-button">
+            <span class="check-icon">✓</span>
+          </div>
+        </div>
+        <div class="action-container">
+          <div class="action-label">Remove</div>
+          <div class="action-button remove-button">
+            <span class="x-icon">✕</span>
+          </div>
+        </div>
+      </div>
+    `;
+    
+    container.appendChild(questionItem);
+  });
+  
+  // Set up action button events
+  const answeredButtons = container.querySelectorAll(".answered-button");
+  const removeButtons = container.querySelectorAll(".remove-button");
+  
+  answeredButtons.forEach(button => {
+    button.addEventListener("click", function(event) {
+      // Stop the event from propagating
+      event.stopPropagation();
+      
+      // Toggle answered state
+      this.classList.toggle("answered-button");
+      if (this.classList.contains("answered-button")) {
+        this.innerHTML = '<span class="check-icon">✓</span>';
+      } else {
+        this.innerHTML = '';
+      }
+    });
+  });
+  
+  removeButtons.forEach(button => {
+    button.addEventListener("click", function(event) {
+      // Stop the event from propagating
+      event.stopPropagation();
+      
+      // Remove the question item
+      const questionItem = this.closest(".question-item");
+      if (questionItem) {
+        questionItem.remove();
+      }
+    });
+  });
+}
+
+// Setup event listeners for the Questions button and icon
+function setupQuestionsButtonListeners() {
+  // Get the Questions button and Questions icon
+  const questionsButton = document.querySelector(".roadmap-nav-btn[data-target='questions']");
+  const questionsCard = document.getElementById("questionsCard");
+  
+  if (questionsButton) {
+    questionsButton.addEventListener("click", function() {
+      showDoctorQuestionsScreen();
+    });
+  }
+  
+  if (questionsCard) {
+    questionsCard.addEventListener("click", function() {
+      showDoctorQuestionsScreen();
+    });
+  }
+}
+
+// Add this line at the end of your JavaScript file
+document.addEventListener("click", function(e) {
+  if (e.target && e.target.matches(".roadmap-nav-btn[data-target='questions'], .roadmap-nav-btn[data-target='questions'] *")) {
+    // Directly hide the instruction text with a delay to ensure it works
+    setTimeout(function() {
+      const instructionText = document.querySelector(".roadmap-instruction");
+      if (instructionText) {
+        instructionText.style.display = "none";
+        instructionText.style.height = "0";
+        instructionText.style.margin = "0";
+        instructionText.style.padding = "0";
+      }
+    }, 10);
+  }
+});
+
+// Also check if we need to hide it on page load
+window.addEventListener("load", function() {
+  const questionsButton = document.querySelector(".roadmap-nav-btn[data-target='questions']");
+  if (questionsButton && questionsButton.classList.contains("active")) {
+    const instructionText = document.querySelector(".roadmap-instruction");
+    if (instructionText) {
+      instructionText.style.display = "none";
+      instructionText.style.height = "0";
+      instructionText.style.margin = "0";
+      instructionText.style.padding = "0";
+    }
+  }
+});
+
 window.addMenuToApp = addMenuToApp;

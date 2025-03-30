@@ -1111,46 +1111,7 @@
           <button class="filter-btn">Full History</button>
         </div>
         
-        <!-- Month section: February -->
-        <h2 class="month-title">February 2025</h2>
-        
-        <!-- Health Log Cards for February -->
-        <div class="health-log-card">
-          <div class="log-avatar-container">
-            <img id="logAvatarFeb28" src="https://placehold.co/67x67" alt="User" class="log-avatar">
-          </div>
-          <div class="log-content">
-            <h3 class="log-date">February 28th, 2025</h3>
-            <p class="log-text">Woke up feeling a lot better but lingering cough that...</p>
-          </div>
-          <div class="log-checkbox">
-            <div class="checkbox checked">
-              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <rect x="0.5" y="0.5" width="23" height="23" rx="3.5" fill="#12B28C"/>
-                <path d="M7 12L10 15L17 8" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-              </svg>
-            </div>
-            <div class="add-log-text">Add<br/>Health Log</div>
-          </div>
-        </div>
-        
-        <div class="health-log-card">
-          <div class="log-avatar-container">
-            <img id="logAvatarFeb21" src="https://placehold.co/67x67" alt="User" class="log-avatar">
-          </div>
-          <div class="log-content">
-            <h3 class="log-date">February 21st, 2025</h3>
-            <p class="log-text">Started feeling unwell last night with mild chills and...</p>
-          </div>
-          <div class="log-checkbox">
-            <div class="checkbox">
-              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <rect x="0.5" y="0.5" width="23" height="23" rx="3.5" stroke="#AEAEB2"/>
-              </svg>
-            </div>
-            <div class="add-log-text">Add<br/>Health Log</div>
-          </div>
-        </div>
+        <!-- Dynamic log content will be loaded here via JavaScript -->
         
         <!-- Prep Doctor's Notes Button -->
         <div class="prep-notes-button">
@@ -1159,6 +1120,154 @@
       </div>
 
       <!-- Footer -->
+      <div class="tutorial-footer">
+        <svg width="390" height="79" viewBox="0 0 390 79" fill="none">
+          <path d="M-12 2.34131H90.5H134.41C139.214 2.34131 143.818 4.26128 147.198 7.67397L169.32 30.0069C185.459 46.3002 212.105 45.218 226.87 27.6697L242.787 8.75268C246.207 4.68784 251.248 2.34131 256.56 2.34131H299.5H402V60.3096C402 72.4598 392.15 82.3096 380 82.3096H10C-2.15027 82.3096 -12 72.4598 -12 60.3096V2.34131Z" fill="white" stroke="#616161" stroke-width="4"/>
+        </svg>
+        <div class="footer-nav">
+          <!-- Health History -->
+          <div class="footer-btn">
+            <img src="./imgs/health-history-icon.png" alt="Health History" class="footer-icon"/>
+            <span>Health History</span>
+          </div>
+          
+          <!-- New Log -->
+          <div class="footer-btn main">
+            <div class="new-log-icon">
+              <img src="./imgs/new-log-icon.png" alt="New Log">
+              <div class="icon-text">New Log</div>
+            </div>
+          </div>
+          
+          <!-- Prep Visit -->
+          <div class="footer-btn active">
+            <img src="./imgs/appointments-icon.png" alt="Prep Visit" class="footer-icon" />
+            <span>Prep Visit</span>
+          </div>
+        </div>
+      </div>
+    </div>
+    <!-- Visit Roadmap Page -->
+    <div id="visitRoadmapPage" class="page hidden">
+      <!-- Header -->
+      <div class="prep-visit-header">
+        <img class="user-avatar-small" id="roadmapUserAvatar" src="https://placehold.co/40x40" alt="User Avatar">
+        <div class="header-text">
+          <div class="app-name">Your VitalStory</div>
+        </div>
+        <div class="menu-button">
+          <img src="./imgs/menu_button.png" alt="Menu">
+        </div>
+      </div>
+
+      <!-- Roadmap Content Area -->
+      <div class="roadmap-content">
+        <h1 class="roadmap-title">Visit Roadmap</h1>
+        
+        <!-- Navigation Buttons -->
+        <div class="roadmap-nav">
+          <button class="roadmap-nav-btn active" data-target="summary">Summary</button>
+          <button class="roadmap-nav-btn" data-target="vitalai">VitalAI</button>
+          <button class="roadmap-nav-btn" data-target="questions">Questions?</button>
+        </div>
+        
+        <!-- Instruction Text -->
+        <p class="roadmap-instruction">
+          These story cards help you organize your health information to share it clearly with your doctor.
+        </p>
+        
+        <!-- Card Container -->
+        <div class="roadmap-cards-container">
+          <!-- Summary Card (Start Here) -->
+          <div class="roadmap-card visible" id="summaryCard">
+            <h2 class="card-title">Start Here</h2>
+            <div class="card-content">
+              <p class="card-paragraph">
+                <strong>Summary:</strong>
+              </p>
+              <p class="card-paragraph">
+                I've been experiencing unusual fatigue and headaches for the past few weeks that are affecting my daily life.
+              </p>
+              <p class="card-paragraph">
+                These symptoms are new and concerning to me, especially since I haven't made any lifestyle changes.
+              </p>
+            </div>
+            <div class="card-actions">
+              <button class="card-btn expand">Expand</button>
+              <button class="card-btn edit">Edit</button>
+            </div>
+          </div>
+          
+          <!-- Symptoms Card -->
+          <div class="roadmap-card" id="symptomsCard">
+            <h2 class="card-title">Symptoms</h2>
+            <div class="card-content">
+              <p class="card-symptom">
+                <strong>Fatigue & Low Energy:</strong> Consistently worse in the afternoons
+              </p>
+              <p class="card-symptom">
+                <strong>Persistent Headaches:</strong> Mild but constant, started about two weeks ago
+              </p>
+              <p class="card-symptom">
+                <strong>Post-meal Exhaustion:</strong> Feeling drained specifically after eating
+              </p>
+            </div>
+            <div class="card-actions">
+              <button class="card-btn expand">Expand</button>
+              <button class="card-btn edit">Edit</button>
+            </div>
+          </div>
+          
+          <!-- Timeline Card -->
+          <div class="roadmap-card" id="timelineCard">
+            <h2 class="card-title">Timeline</h2>
+            <div class="card-content">
+              <p class="card-paragraph">
+                <strong>The headaches began two weeks ago</strong> and have been consistent every day.
+              </p>
+              <p class="card-paragraph">
+                <strong>The fatigue has been going on slightly longer,</strong> maybe 3-4 weeks, but has become more noticeable recently. The post-meal exhaustion is newer, started noticing it about a week ago.
+              </p>
+            </div>
+            <div class="card-actions">
+              <button class="card-btn expand">Expand</button>
+              <button class="card-btn edit">Edit</button>
+            </div>
+          </div>
+          
+          <!-- Impact Card -->
+          <div class="roadmap-card" id="impactCard">
+            <h2 class="card-title">Impact</h2>
+            <div class="card-content">
+              <p class="card-paragraph">
+                <strong>I'm struggling to stay productive in the afternoons at work.</strong> I've had to cancel my evening exercise routine several times because I'm too tired.
+              </p>
+              <p class="card-paragraph">
+                <strong>The headaches make it difficult to concentrate on tasks</strong> requiring focus. I've started avoiding certain social activities because I don't have the energy.
+              </p>
+            </div>
+            <div class="card-actions">
+              <button class="card-btn expand">Expand</button>
+              <button class="card-btn edit">Edit</button>
+            </div>
+          </div>
+          
+          <!-- Questions Card -->
+          <div class="roadmap-card" id="questionsCard">
+            <h2 class="card-title">Questions</h2>
+            <div class="card-content questions-content">
+              <p class="card-paragraph text-center">
+                Tap here to see your prepared questions for your doctor.
+              </p>
+              <!-- <div class="questions-icon">
+                <img src="./imgs/questions-icon.png" alt="Questions">
+              </div> -->
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Footer Navigation -->
       <div class="tutorial-footer">
         <svg width="390" height="79" viewBox="0 0 390 79" fill="none">
           <path d="M-12 2.34131H90.5H134.41C139.214 2.34131 143.818 4.26128 147.198 7.67397L169.32 30.0069C185.459 46.3002 212.105 45.218 226.87 27.6697L242.787 8.75268C246.207 4.68784 251.248 2.34131 256.56 2.34131H299.5H402V60.3096C402 72.4598 392.15 82.3096 380 82.3096H10C-2.15027 82.3096 -12 72.4598 -12 60.3096V2.34131Z" fill="white" stroke="#616161" stroke-width="4"/>
