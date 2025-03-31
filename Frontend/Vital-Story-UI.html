@@ -6,6 +6,8 @@
   <title>VitalStory App</title>
   <link rel="stylesheet" href="Vital-Story-styles.css">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Roboto:wght@400;700&family=Urbanist:wght@500;600;700&display=swap" rel="stylesheet">
+  <!-- Add this before your script -->
+  <script src="https://cdn.jsdelivr.net/npm/aws-amplify@5.0.4/dist/aws-amplify.min.js"></script>
 </head>
 <body>
   <div class="app-container">
@@ -1268,6 +1270,79 @@
       </div>
 
       <!-- Footer Navigation -->
+      <div class="tutorial-footer">
+        <svg width="390" height="79" viewBox="0 0 390 79" fill="none">
+          <path d="M-12 2.34131H90.5H134.41C139.214 2.34131 143.818 4.26128 147.198 7.67397L169.32 30.0069C185.459 46.3002 212.105 45.218 226.87 27.6697L242.787 8.75268C246.207 4.68784 251.248 2.34131 256.56 2.34131H299.5H402V60.3096C402 72.4598 392.15 82.3096 380 82.3096H10C-2.15027 82.3096 -12 72.4598 -12 60.3096V2.34131Z" fill="white" stroke="#616161" stroke-width="4"/>
+        </svg>
+        <div class="footer-nav">
+          <!-- Health History -->
+          <div class="footer-btn">
+            <img src="./imgs/health-history-icon.png" alt="Health History" class="footer-icon"/>
+            <span>Health History</span>
+          </div>
+          
+          <!-- New Log -->
+          <div class="footer-btn main">
+            <div class="new-log-icon">
+              <img src="./imgs/new-log-icon.png" alt="New Log">
+              <div class="icon-text">New Log</div>
+            </div>
+          </div>
+          
+          <!-- Prep Visit -->
+          <div class="footer-btn active">
+            <img src="./imgs/appointments-icon.png" alt="Prep Visit" class="footer-icon" />
+            <span>Prep Visit</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Doctor Questions Page HTML - Add to your Vital-Story-UI.html file -->
+    <div id="doctorQuestionsPage" class="page hidden">
+      <!-- Header -->
+      <div class="prep-visit-header">
+        <img class="user-avatar-small" id="doctorQuestionsAvatar" src="https://placehold.co/40x40" alt="User Avatar">
+        <div class="header-text">
+          <div class="app-name">Your VitalStory</div>
+        </div>
+        <div class="menu-button">
+          <img src="./imgs/menu_button.png" alt="Menu">
+        </div>
+      </div>
+
+      <!-- Content Area -->
+      <div class="doctor-questions-content">
+        <!-- Page Title -->
+        <h1 class="roadmap-title">Questions for your Doctor</h1>
+        
+        <!-- Navigation Buttons -->
+        <div class="roadmap-nav">
+          <button class="roadmap-nav-btn" data-target="summary">Summary</button>
+          <button class="roadmap-nav-btn" data-target="vitalai">VitalAI</button>
+          <button class="roadmap-nav-btn active" data-target="questions">Questions?</button>
+        </div>
+        
+        <!-- Questions List -->
+        <div id="doctorQuestionsList" class="doctor-questions-list">
+          <p class="questions-instruction">
+            Add any questions you want to ask your doctor. Use this list to ensure you get the information you need.
+          </p>
+          
+          <div class="questions-container">
+            <!-- Questions will be added here by JavaScript -->
+          </div>
+          
+          <div class="add-question-container">
+            <div class="add-question-button">
+              <span class="plus-icon">+</span>
+            </div>
+            <p class="add-question-text">Question missing?<br>Not a problem, click to add</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Footer -->
       <div class="tutorial-footer">
         <svg width="390" height="79" viewBox="0 0 390 79" fill="none">
           <path d="M-12 2.34131H90.5H134.41C139.214 2.34131 143.818 4.26128 147.198 7.67397L169.32 30.0069C185.459 46.3002 212.105 45.218 226.87 27.6697L242.787 8.75268C246.207 4.68784 251.248 2.34131 256.56 2.34131H299.5H402V60.3096C402 72.4598 392.15 82.3096 380 82.3096H10C-2.15027 82.3096 -12 72.4598 -12 60.3096V2.34131Z" fill="white" stroke="#616161" stroke-width="4"/>

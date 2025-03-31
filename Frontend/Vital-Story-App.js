@@ -51,24 +51,27 @@ Respond ONLY with the JSON array and nothing else.
 
   return prompt;
 }
-async function callAPI(endpoint, method = 'GET', data = null) {
+// Updated callAPI function using AWS Amplify
+async function callAPI(endpoint = 'vitalstory', method = 'POST', data = null) {
   const API_URL = 'https://0oh0zinoi8.execute-api.us-west-2.amazonaws.com/vitalstory-apiendpoint/vitalstory';
   
-  const options = {
-    method: method,
-    headers: {
-      'Content-Type': 'application/json'  // Changed back to application/json
-    }
-  };
-  
-  if (data && (method === 'POST' || method === 'PUT')) {
-    // Format exactly like your teammate's code
-    const payload = { "inputs": data };
-    console.log("Request payload:", JSON.stringify(payload, null, 2));
-    options.body = JSON.stringify(payload);
-  }
-  
   try {
+    console.log("Calling API with data:", data);
+    
+    const options = {
+      method: method,
+      headers: {
+        'Content-Type': 'application/json'
+      }
+    };
+    
+    if (data && (method === 'POST' || method === 'PUT')) {
+      // Format exactly like your teammate's code
+      const payload = { "inputs": data };
+      console.log("Request payload:", JSON.stringify(payload, null, 2));
+      options.body = JSON.stringify(payload);
+    }
+    
     const response = await fetch(API_URL, options);
     
     if (!response.ok) {
@@ -3436,7 +3439,7 @@ function updateFixAllFooters() {
   };
 }
 
-// Call the function when DOM is loaded
+
 // Call the function when DOM is loaded
 document.addEventListener('DOMContentLoaded', function() {
   // Fix footer positioning
@@ -3464,7 +3467,50 @@ document.addEventListener('DOMContentLoaded', function() {
       }
     });
   });
-  
+
+  // Add direct fix for Questions view
+  document.addEventListener('click', function(e) {
+    if (e.target && 
+        (e.target.matches('.roadmap-nav-btn[data-target="questions"]') || 
+         e.target.closest('.roadmap-nav-btn[data-target="questions"]'))) {
+      
+      console.log('Questions button clicked - applying direct fix');
+      
+      // First, make sure handleRoadmapNavigation is called
+      const target = e.target.matches('.roadmap-nav-btn') ? 
+        e.target.dataset.target : 
+        e.target.closest('.roadmap-nav-btn').dataset.target;
+      
+      handleRoadmapNavigation(target);
+      
+      // Then apply additional fixes after a short delay
+      setTimeout(function() {
+        // Get the instruction element 
+        const instructionText = document.querySelector('.roadmap-instruction');
+        if (instructionText) instructionText.style.display = 'none';
+        
+        // Make sure cards container is hidden
+        const cardsContainer = document.querySelector('.roadmap-cards-container');
+        if (cardsContainer) cardsContainer.style.display = 'none';
+        
+        // Make sure questions container is visible and properly positioned
+        const questionsContainer = document.getElementById('doctorQuestionsList');
+        if (questionsContainer) {
+          questionsContainer.style.display = 'block';
+          questionsContainer.style.marginTop = '0';
+          questionsContainer.style.paddingTop = '0';
+        }
+      }, 50);
+    }
+  });
+
+  // Also check on page load if Questions tab is active
+  const questionsButton = document.querySelector('.roadmap-nav-btn[data-target="questions"]');
+  if (questionsButton && questionsButton.classList.contains('active')) {
+    console.log('Questions tab active at load - applying direct fix');
+    handleRoadmapNavigation('questions');
+  }
+
   console.log("Avatar consistency setup complete");
 });
 
@@ -3715,36 +3761,257 @@ function setupRoadmapNavigation() {
   });
 }
 
-// Function to handle roadmap navigation based on button clicked
-function handleRoadmapNavigation(target) {
-  console.log(`Navigation to ${target}`);
+// Add this function to ensure questions display properly when the Questions tab is selected
+function showDoctorQuestionsScreen() {
+  console.log("Showing doctor questions screen");
   
-  // Get the instruction text element
-  const instructionText = document.querySelector(".roadmap-instruction");
+  // Get required elements
+  const roadmapTitle = document.querySelector('.roadmap-title');
+  const instructionText = document.querySelector('.roadmap-instruction');
+  const cardsContainer = document.querySelector('.roadmap-cards-container');
   
-  // Hide/show instruction text based on selected tab
-  if (instructionText) {
-    if (target === "summary") {
-      instructionText.style.display = "block";
-    } else {
-      instructionText.style.display = "none";
+  // 1. Update the title
+  if (roadmapTitle) {
+    roadmapTitle.textContent = 'Questions for your Doctor';
+  }
+  
+  // 2. Hide the instruction text and cards
+  if (instructionText) instructionText.style.display = 'none';
+  if (cardsContainer) cardsContainer.style.display = 'none';
+  
+  // 3. Get or create the questions container
+  let questionsContainer = document.getElementById('doctorQuestionsList');
+  if (!questionsContainer) {
+    questionsContainer = document.createElement('div');
+    questionsContainer.id = 'doctorQuestionsList';
+    questionsContainer.className = 'doctor-questions-list';
+    
+    // Add to roadmap content
+    const roadmapContent = document.querySelector('.roadmap-content');
+    if (roadmapContent) {
+      roadmapContent.appendChild(questionsContainer);
     }
   }
   
-  // Handle different targets
-  switch(target) {
-    case "summary":
-      showRoadmapCard("summaryCard");
-      break;
-    case "vitalai":
-      // For now, just show symptoms card
-      showRoadmapCard("symptomsCard");
-      break;
-    case "questions":
-      showRoadmapCard("questionsCard");
-      break;
-    default:
-      showRoadmapCard("summaryCard");
+  // 4. Make sure the questions container is visible
+  questionsContainer.style.display = 'block';
+  questionsContainer.classList.add('visible');
+  
+  // 5. Fill with content if empty
+  if (!questionsContainer.querySelector('.questions-container')) {
+    questionsContainer.innerHTML = `
+      <p class="questions-instruction">
+        Add any questions you want to ask your doctor. Use this list to ensure you get the information you need.
+      </p>
+      
+      <div class="questions-container">
+        <!-- Questions will be added here -->
+      </div>
+      
+      <div class="add-question-container">
+        <div class="add-question-button">
+          <span class="plus-icon">+</span>
+        </div>
+        <p class="add-question-text">Question missing?<br>Not a problem, click to add</p>
+      </div>
+    `;
+    
+    // Generate the questions
+    generateDoctorQuestions(questionsContainer.querySelector('.questions-container'));
+  }
+  
+  // 6. Set the page as active
+  const visitRoadmapPage = document.getElementById('visitRoadmapPage');
+  if (visitRoadmapPage) {
+    visitRoadmapPage.classList.add('questions-active');
+  }
+  
+  console.log("Doctor questions screen ready");
+}
+
+// Fix the original handleRoadmapNavigation function to properly handle the questions tab
+function handleRoadmapNavigation(target) {
+  console.log(`Navigation to ${target}`);
+  
+  // Get elements
+  const navButtons = document.querySelectorAll('.roadmap-nav-btn');
+  const instructionText = document.querySelector('.roadmap-instruction');
+  const cardsContainer = document.querySelector('.roadmap-cards-container');
+  
+  // Update navigation buttons
+  navButtons.forEach(btn => {
+    btn.classList.remove('active');
+    btn.style.backgroundColor = '#B478CF'; // Default purple
+  });
+  
+  // Set active button
+  const selectedButton = document.querySelector(`.roadmap-nav-btn[data-target="${target}"]`);
+  if (selectedButton) {
+    selectedButton.classList.add('active');
+    
+    // Set Questions and VitalAI buttons to blue when active
+    if (target === 'questions' || target === 'vitalai') {
+      selectedButton.style.backgroundColor = '#4E95D9'; // Blue
+    }
+  }
+  
+  if (target === 'questions') {
+    // 1. Update the title
+    const roadmapTitle = document.querySelector('.roadmap-title');
+    if (roadmapTitle) {
+      roadmapTitle.textContent = 'Questions for your Doctor';
+    }
+    
+    // 2. Hide the instruction text and cards
+    if (instructionText) instructionText.style.display = 'none';
+    if (cardsContainer) cardsContainer.style.display = 'none';
+    
+    // 3. Get or create the questions container
+    let questionsContainer = document.getElementById('doctorQuestionsList');
+    if (!questionsContainer) {
+      questionsContainer = document.createElement('div');
+      questionsContainer.id = 'doctorQuestionsList';
+      questionsContainer.className = 'doctor-questions-list';
+      
+      // Add to roadmap content
+      const roadmapContent = document.querySelector('.roadmap-content');
+      if (roadmapContent) {
+        roadmapContent.appendChild(questionsContainer);
+      }
+    }
+    
+    // 4. Show the container
+    questionsContainer.style.display = 'block';
+    
+    // 5. Fill with content
+    questionsContainer.innerHTML = `
+      <p class="questions-instruction">
+        Add any questions you want to ask your doctor. Use this list to ensure you get the information you need.
+      </p>
+      
+      <div class="questions-container">
+        <!-- Questions will be added here -->
+      </div>
+      
+      <div class="add-question-container">
+        <div class="add-question-button">
+          <span class="plus-icon">+</span>
+        </div>
+        <p class="add-question-text">Question missing?<br>Not a problem, click to add</p>
+      </div>
+    `;
+    
+    // 6. Add the questions (always regenerate them)
+    const questionsContainerElement = questionsContainer.querySelector('.questions-container');
+    
+    // Sample questions
+    const sampleQuestions = [
+      "What is the expected timeline for recovery?",
+      "Are there any support groups available?",
+      "Could this have to do with my new protein powder?",
+      "What are the next steps that I should take?",
+      "How can I prevent this condition from recurring in the future?"
+    ];
+    
+    // Add questions
+    sampleQuestions.forEach(question => {
+      const questionItem = document.createElement('div');
+      questionItem.className = 'question-item';
+      questionItem.innerHTML = `
+        <div class="question-text">${question}</div>
+        <div class="question-actions">
+          <div class="action-container">
+            <div class="action-label">Answered</div>
+            <div class="action-button answered-button">
+              <span class="check-icon">✓</span>
+            </div>
+          </div>
+          <div class="action-container">
+            <div class="action-label">Remove</div>
+            <div class="action-button remove-button">
+              <span class="x-icon">✕</span>
+            </div>
+          </div>
+        </div>
+      `;
+      
+      questionsContainerElement.appendChild(questionItem);
+    });
+    
+    // Add click listeners for buttons
+    const answeredButtons = questionsContainer.querySelectorAll(".answered-button");
+    const removeButtons = questionsContainer.querySelectorAll(".remove-button");
+    
+    answeredButtons.forEach(button => {
+      button.addEventListener("click", function(event) {
+        event.stopPropagation();
+        this.classList.toggle("answered-button");
+        if (this.classList.contains("answered-button")) {
+          this.innerHTML = '<span class="check-icon">✓</span>';
+        } else {
+          this.innerHTML = '';
+        }
+      });
+    });
+    
+    removeButtons.forEach(button => {
+      button.addEventListener("click", function(event) {
+        event.stopPropagation();
+        const questionItem = this.closest(".question-item");
+        if (questionItem) {
+          questionItem.style.transition = "opacity 0.3s ease-out";
+          questionItem.style.opacity = "0";
+          setTimeout(() => {
+            questionItem.remove();
+          }, 300);
+        }
+      });
+    });
+    
+  } else if (target === 'summary') {
+    // Summary view - restore original structure
+    if (instructionText) instructionText.style.display = 'block';
+    if (cardsContainer) cardsContainer.style.display = 'block';
+    
+    // Hide the questions container
+    const questionsContainer = document.getElementById('doctorQuestionsList');
+    if (questionsContainer) questionsContainer.style.display = 'none';
+    
+    // Show the summary card
+    showRoadmapCardById('summaryCard');
+    
+  } else if (target === 'vitalai') {
+    // VitalAI view
+    if (instructionText) instructionText.style.display = 'none';
+    if (cardsContainer) cardsContainer.style.display = 'block';
+    
+    // Hide the questions container
+    const questionsContainer = document.getElementById('doctorQuestionsList');
+    if (questionsContainer) questionsContainer.style.display = 'none';
+    
+    // Show the symptoms card
+    showRoadmapCardById('symptomsCard');
+  }
+}
+
+// Helper function to forcibly hide instruction text
+function forceHideInstructionText() {
+  const instructionText = document.querySelector('.roadmap-instruction');
+  if (instructionText) {
+    instructionText.style.display = 'none';
+    instructionText.style.height = '0';
+    instructionText.style.margin = '0';
+    instructionText.style.padding = '0';
+    instructionText.style.opacity = '0';
+    instructionText.style.visibility = 'hidden';
+    instructionText.style.position = 'absolute';
+    instructionText.style.pointerEvents = 'none';
+  }
+  
+  // Also set the questions-active class on the page
+  const roadmapPage = document.getElementById('visitRoadmapPage');
+  if (roadmapPage) {
+    roadmapPage.classList.add('questions-active');
   }
 }
 
@@ -4277,14 +4544,14 @@ function handleImprovedRoadmapNavigation(target) {
       if (navButtons2) navButtons2.style.display = "flex";
       break;
     case "questions":
-      // Show doctor questions instead of the questions card
-      showDoctorQuestions();
-      
+      // Use the new implementation that shows the dedicated questions page
+      showDoctorQuestionsPage();
+        
       // Change button color to blue
       const questionsButton = document.querySelector(".roadmap-nav-btn[data-target='questions']");
       if (questionsButton) questionsButton.style.backgroundColor = "#4E95D9"; // Blue
-      
-      // Hide VitalAI panel if visible
+        
+        // Hide VitalAI panel if visible
       const vitalAiPanel2 = document.getElementById("vitalAiPanel");
       if (vitalAiPanel2) vitalAiPanel2.classList.remove("visible");
       break;
@@ -4965,46 +5232,33 @@ function setupDoctorQuestionsScreen() {
 }
 
 
-
-// Function to show doctor questions
+// Modified showDoctorQuestions function to ensure no gaps
 function showDoctorQuestions() {
-  // Update page title
-  const roadmapTitle = document.querySelector(".roadmap-title");
-  if (roadmapTitle) {
-    roadmapTitle.textContent = "Questions for your Doctor";
+  // Get the roadmap content area
+  const roadmapContent = document.querySelector('.roadmap-content');
+  if (!roadmapContent) return;
+  
+  // Remove any empty space at the top
+  roadmapContent.style.paddingTop = '0';
+  
+  // Check if questions list already exists
+  let questionsList = document.getElementById('doctorQuestionsList');
+  
+  if (!questionsList) {
+    // Create the list if it doesn't exist
+    questionsList = document.createElement('div');
+    questionsList.id = 'doctorQuestionsList';
+    questionsList.className = 'doctor-questions-list';
+    questionsList.style.marginTop = '0'; // Ensure no gap
+    roadmapContent.appendChild(questionsList);
   }
   
-  // Hide all roadmap cards
-  const roadmapCards = document.querySelectorAll(".roadmap-card");
-  roadmapCards.forEach(card => {
-    card.style.display = "none";
-  });
+  // Show the list
+  questionsList.style.display = 'block';
   
-  // Hide card navigation buttons
-  const navButtons = document.querySelector(".roadmap-card-nav");
-  if (navButtons) {
-    navButtons.style.display = "none";
-  }
-  
-  // Get or create the questions list container
-  let questionsListContainer = document.getElementById("doctorQuestionsList");
-  if (!questionsListContainer) {
-    // Create container if it doesn't exist
-    questionsListContainer = document.createElement("div");
-    questionsListContainer.id = "doctorQuestionsList";
-    questionsListContainer.className = "doctor-questions-list";
-    
-    // Add it to roadmap content
-    const roadmapContent = document.querySelector(".roadmap-content");
-    if (roadmapContent) {
-      roadmapContent.appendChild(questionsListContainer);
-    }
-  }
-  
-  // Show and populate questions content
-  questionsListContainer.classList.add("visible");
-  questionsListContainer.innerHTML = `
-    <p class="questions-instruction">
+  // Fill with content
+  questionsList.innerHTML = `
+    <p class="questions-instruction" style="margin-top: 0 !important;">
       Add any questions you want to ask your doctor. Use this list to ensure you get the information you need.
     </p>
     
@@ -5021,11 +5275,16 @@ function showDoctorQuestions() {
   `;
   
   // Generate and add questions
-  generateDoctorQuestions(questionsListContainer.querySelector(".questions-container"));
+  generateDoctorQuestions(questionsList.querySelector(".questions-container"));
 }
 
-// Function to generate 5 doctor questions
+// Make sure this function is properly defined to create questions
 function generateDoctorQuestions(container) {
+  if (!container) {
+    console.error("Questions container not found");
+    return;
+  }
+  
   // Sample questions for the prototype
   const sampleQuestions = [
     "What is the expected timeline for recovery?",
@@ -5063,10 +5322,19 @@ function generateDoctorQuestions(container) {
     container.appendChild(questionItem);
   });
   
-  // Set up action button events
+  // Add click handlers to action buttons
+  setupQuestionActionButtons(container);
+}
+
+// Add this helper function for button click handlers
+function setupQuestionActionButtons(container) {
+  if (!container) return;
+  
+  // Get all buttons
   const answeredButtons = container.querySelectorAll(".answered-button");
   const removeButtons = container.querySelectorAll(".remove-button");
   
+  // Set up answered button click handlers
   answeredButtons.forEach(button => {
     button.addEventListener("click", function(event) {
       // Stop the event from propagating
@@ -5082,6 +5350,7 @@ function generateDoctorQuestions(container) {
     });
   });
   
+  // Set up remove button click handlers
   removeButtons.forEach(button => {
     button.addEventListener("click", function(event) {
       // Stop the event from propagating
@@ -5090,7 +5359,14 @@ function generateDoctorQuestions(container) {
       // Remove the question item
       const questionItem = this.closest(".question-item");
       if (questionItem) {
-        questionItem.remove();
+        // Add fade-out animation
+        questionItem.style.transition = "opacity 0.3s ease-out";
+        questionItem.style.opacity = "0";
+        
+        // Remove after animation completes
+        setTimeout(() => {
+          questionItem.remove();
+        }, 300);
       }
     });
   });
@@ -5104,13 +5380,13 @@ function setupQuestionsButtonListeners() {
   
   if (questionsButton) {
     questionsButton.addEventListener("click", function() {
-      showDoctorQuestionsScreen();
+      showDoctorQuestionsPage(); // Changed from showDoctorQuestionsScreen()
     });
   }
   
   if (questionsCard) {
     questionsCard.addEventListener("click", function() {
-      showDoctorQuestionsScreen();
+      showDoctorQuestionsPage(); // Changed from showDoctorQuestionsScreen()
     });
   }
 }
@@ -5145,4 +5421,1597 @@ window.addEventListener("load", function() {
   }
 });
 
+// Doctor Questions Page JavaScript - Add to your Vital-Story-App.js file
+
+// Initialize the doctor questions page when DOM is loaded
+document.addEventListener("DOMContentLoaded", function() {
+  // Add function call to initializeApp if it exists
+  if (window.initializeApp) {
+    const originalInitializeApp = window.initializeApp;
+    window.initializeApp = function() {
+      originalInitializeApp();
+      initializeDoctorQuestionsPage();
+    };
+  } else {
+    // Otherwise set up standalone initialization
+    initializeDoctorQuestionsPage();
+  }
+});
+
+// Main initialization function for Doctor Questions page
+function initializeDoctorQuestionsPage() {
+  console.log("Initializing Doctor Questions page");
+  
+  // Update user avatar
+  updateDoctorQuestionsAvatar();
+  
+  // Generate and display questions
+  generateDoctorQuestions();
+  
+  // Set up navigation button handlers
+  setupDoctorQuestionsNavigation();
+  
+  // Fix footer positioning
+  fixDoctorQuestionsFooter();
+  
+  // Set up add question button
+  setupAddQuestionButton();
+  
+  console.log("Doctor Questions page initialized");
+}
+
+// Update the avatar on the doctor questions page
+function updateDoctorQuestionsAvatar() {
+  const avatar = document.getElementById("doctorQuestionsAvatar");
+  if (avatar) {
+    const storedAvatar = sessionStorage.getItem("selectedAvatar") || "https://placehold.co/40x40";
+    avatar.src = storedAvatar;
+  }
+}
+
+// Make sure this function is properly defined to create questions
+function generateDoctorQuestions(container) {
+  if (!container) {
+    console.error("Questions container not found");
+    return;
+  }
+  
+  // Sample questions for the prototype
+  const sampleQuestions = [
+    "What is the expected timeline for recovery?",
+    "Are there any support groups available?",
+    "Could this have to do with my new protein powder?",
+    "What are the next steps that I should take?",
+    "How can I prevent this condition from recurring in the future?"
+  ];
+  
+  // Clear container first
+  container.innerHTML = '';
+  
+  // Add the questions to the container
+  sampleQuestions.forEach(question => {
+    const questionItem = document.createElement("div");
+    questionItem.className = "question-item";
+    questionItem.innerHTML = `
+      <div class="question-text">${question}</div>
+      <div class="question-actions">
+        <div class="action-container">
+          <div class="action-label">Answered</div>
+          <div class="action-button answered-button">
+            <span class="check-icon">✓</span>
+          </div>
+        </div>
+        <div class="action-container">
+          <div class="action-label">Remove</div>
+          <div class="action-button remove-button">
+            <span class="x-icon">✕</span>
+          </div>
+        </div>
+      </div>
+    `;
+    
+    container.appendChild(questionItem);
+  });
+  
+  // Add click handlers to action buttons
+  setupQuestionActionButtons(container);
+}
+
+// Set up action button click handlers
+function setupQuestionActionButtons() {
+  // Get all buttons
+  const answeredButtons = document.querySelectorAll("#doctorQuestionsPage .answered-button");
+  const removeButtons = document.querySelectorAll("#doctorQuestionsPage .remove-button");
+  
+  // Set up answered button click handlers
+  answeredButtons.forEach(button => {
+    button.addEventListener("click", function(event) {
+      // Stop the event from propagating
+      event.stopPropagation();
+      
+      // Toggle answered state
+      this.classList.toggle("answered-button");
+      if (this.classList.contains("answered-button")) {
+        this.innerHTML = '<span class="check-icon">✓</span>';
+      } else {
+        this.innerHTML = '';
+      }
+    });
+  });
+  
+  // Set up remove button click handlers
+  removeButtons.forEach(button => {
+    button.addEventListener("click", function(event) {
+      // Stop the event from propagating
+      event.stopPropagation();
+      
+      // Remove the question item
+      const questionItem = this.closest(".question-item");
+      if (questionItem) {
+        // Add fade-out animation
+        questionItem.style.transition = "opacity 0.3s ease-out";
+        questionItem.style.opacity = "0";
+        
+        // Remove after animation completes
+        setTimeout(() => {
+          questionItem.remove();
+        }, 300);
+      }
+    });
+  });
+}
+
+// Set up navigation button handlers
+function setupDoctorQuestionsNavigation() {
+  const navButtons = document.querySelectorAll("#doctorQuestionsPage .roadmap-nav-btn");
+  
+  navButtons.forEach(button => {
+    button.addEventListener("click", function() {
+      // Get the target page
+      const target = this.dataset.target;
+      
+      // Handle navigation based on target
+      if (target === "summary" || target === "vitalai") {
+        // If we're going to visit roadmap page
+        const currentPage = document.getElementById("doctorQuestionsPage");
+        const visitRoadmapPage = document.getElementById("visitRoadmapPage");
+        
+        if (currentPage && visitRoadmapPage) {
+          // Transition to visit roadmap page
+          transitionPages("doctorQuestionsPage", "visitRoadmapPage");
+          
+          // Set the active tab on the roadmap page
+          setTimeout(() => {
+            const targetButton = document.querySelector(`#visitRoadmapPage .roadmap-nav-btn[data-target="${target}"]`);
+            if (targetButton) {
+              targetButton.click();
+            }
+          }, 100);
+        }
+      }
+    });
+  });
+  
+  // Set up footer button handlers
+  setupDoctorQuestionsFooterButtons();
+}
+
+// Fix the footer positioning
+function fixDoctorQuestionsFooter() {
+  const page = document.getElementById("doctorQuestionsPage");
+  if (!page) return;
+  
+  // Make sure the page has proper structure
+  page.style.position = "relative";
+  page.style.height = "100%";
+  page.style.overflow = "hidden";
+  
+  // Fix the content area
+  const content = page.querySelector(".doctor-questions-content");
+  if (content) {
+    content.style.overflow = "auto";
+    content.style.height = "calc(100% - 114px)"; // Subtract header height
+    content.style.paddingBottom = "90px"; // Space for footer
+  }
+  
+  // Fix the footer
+  const footer = page.querySelector(".tutorial-footer");
+  if (footer) {
+    footer.style.position = "absolute";
+    footer.style.bottom = "0";
+    footer.style.left = "0";
+    footer.style.width = "100%";
+    footer.style.zIndex = "999";
+  }
+}
+
+// Set up footer button handlers
+function setupDoctorQuestionsFooterButtons() {
+  const footerButtons = document.querySelectorAll("#doctorQuestionsPage .footer-btn:not(.active)");
+  
+  footerButtons.forEach(button => {
+    const buttonText = button.querySelector("span")?.textContent.trim();
+    
+    if (buttonText === "Health History") {
+      button.addEventListener("click", function() {
+        transitionPages("doctorQuestionsPage", "healthHistoryPage");
+      });
+    } else if (buttonText === "New Log") {
+      button.addEventListener("click", function() {
+        transitionPages("doctorQuestionsPage", "newHealthLogPage");
+      });
+    }
+  });
+}
+
+// Set up add question button functionality
+function setupAddQuestionButton() {
+  const addButton = document.querySelector("#doctorQuestionsPage .add-question-button");
+  if (!addButton) return;
+  
+  addButton.addEventListener("click", function() {
+    // Open a prompt for the new question
+    const newQuestion = prompt("Enter your question for the doctor:");
+    
+    if (newQuestion && newQuestion.trim()) {
+      // Add the new question to the list
+      addNewQuestion(newQuestion.trim());
+    }
+  });
+}
+
+// Add a new question to the list
+function addNewQuestion(questionText) {
+  const container = document.querySelector("#doctorQuestionsPage .questions-container");
+  if (!container) return;
+  
+  // Create new question item
+  const questionItem = document.createElement("div");
+  questionItem.className = "question-item";
+  questionItem.innerHTML = `
+    <div class="question-text">${questionText}</div>
+    <div class="question-actions">
+      <div class="action-container">
+        <div class="action-label">Answered</div>
+        <div class="action-button">
+          <span class="check-icon"></span>
+        </div>
+      </div>
+      <div class="action-container">
+        <div class="action-label">Remove</div>
+        <div class="action-button remove-button">
+          <span class="x-icon">✕</span>
+        </div>
+      </div>
+    </div>
+  `;
+  
+  // Add with fade-in animation
+  questionItem.style.opacity = "0";
+  questionItem.style.transition = "opacity 0.3s ease-in";
+  container.appendChild(questionItem);
+  
+  // Force reflow and fade in
+  void questionItem.offsetWidth;
+  questionItem.style.opacity = "1";
+  
+  // Setup action buttons
+  const answeredButton = questionItem.querySelector(".action-button:not(.remove-button)");
+  const removeButton = questionItem.querySelector(".remove-button");
+  
+  // Set up answered button click handler
+  if (answeredButton) {
+    answeredButton.addEventListener("click", function(event) {
+      event.stopPropagation();
+      this.classList.toggle("answered-button");
+      if (this.classList.contains("answered-button")) {
+        this.innerHTML = '<span class="check-icon">✓</span>';
+      } else {
+        this.innerHTML = '<span class="check-icon"></span>';
+      }
+    });
+  }
+  
+  // Set up remove button click handler
+  if (removeButton) {
+    removeButton.addEventListener("click", function(event) {
+      event.stopPropagation();
+      const item = this.closest(".question-item");
+      if (item) {
+        item.style.opacity = "0";
+        setTimeout(() => {
+          item.remove();
+        }, 300);
+      }
+    });
+  }
+}
+
+// Add function to navigate to doctor questions page from visit roadmap page
+function showDoctorQuestionsPage() {
+  // Check if doctor questions page exists, create it if not
+  let doctorQuestionsPage = document.getElementById("doctorQuestionsPage");
+  
+  if (!doctorQuestionsPage) {
+    console.log("Creating doctor questions page since it doesn't exist");
+    
+    // You would need to create the page here or have it already in the HTML
+    // This is just a placeholder for the logic
+    alert("Doctor Questions page not found in the DOM. Please add it to your HTML.");
+    return;
+  }
+  
+  // Get the current visible page
+  const currentPage = document.querySelector(".page.visible");
+  if (!currentPage) return;
+  
+  // Transition to doctor questions page
+  transitionPages(currentPage.id, "doctorQuestionsPage");
+  
+  // Initialize the page if needed
+  initializeDoctorQuestionsPage();
+}
+
+// Modify existing functions to integrate with doctor questions page
+
+// Update the handleRoadmapNavigation function to use the doctor questions page
+function updateRoadmapNavHandler() {
+  const originalHandler = window.handleRoadmapNavigation;
+  
+  if (!originalHandler) return;
+  
+  window.handleRoadmapNavigation = function(target) {
+    if (target === "questions") {
+      // Use the doctor questions page instead
+      showDoctorQuestionsPage();
+    } else {
+      // Use the original handler for other targets
+      originalHandler(target);
+    }
+  };
+}
+
+// Call the update function when the page loads
+document.addEventListener("DOMContentLoaded", function() {
+  updateRoadmapNavHandler();
+});
+
+// Run this on page load to fix the issues
+document.addEventListener("DOMContentLoaded", function() {
+  // Set up Questions button click to show doctor questions
+  const questionsButton = document.querySelector(".roadmap-nav-btn[data-target='questions']");
+  if (questionsButton) {
+    questionsButton.addEventListener("click", function() {
+      console.log("Questions button clicked");
+      handleRoadmapNavigation('questions');
+    });
+  }
+  
+  // Check if Questions tab is already active
+  if (questionsButton && questionsButton.classList.contains("active")) {
+    console.log("Questions tab already active, showing screen");
+    handleRoadmapNavigation('questions');
+  }
+  
+  // Add CSS for the doctor questions
+  const styleElement = document.createElement("style");
+  styleElement.textContent = `
+    .doctor-questions-list {
+      display: none;
+      width: 100%;
+      padding: 15px;
+      margin-top: 0;
+    }
+    
+    .doctor-questions-list.visible {
+      display: block;
+    }
+    
+    .questions-instruction {
+      width: 353px;
+      height: auto;
+      margin: 0 auto 20px;
+      font-family: 'Urbanist', sans-serif;
+      font-weight: 400;
+      font-size: 14px;
+      line-height: 125%;
+      letter-spacing: 0.28px;
+      text-align: center;
+      color: black;
+    }
+    
+    .questions-container {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      margin-bottom: 20px;
+    }
+    
+    .question-item {
+      width: 322px;
+      height: 56px;
+      margin: 0 auto;
+      background: white;
+      border-radius: 5px;
+      box-shadow: 0px 4px 4px rgba(0, 0, 0, 0.25);
+      display: flex;
+      align-items: center;
+      padding: 0 15px;
+      position: relative;
+    }
+    
+    .question-text {
+      flex: 1;
+      font-family: 'Urbanist', sans-serif;
+      font-weight: 600;
+      font-size: 12px;
+      color: black;
+    }
+    
+    .question-actions {
+      display: flex;
+      gap: 10px;
+    }
+    
+    .action-container {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      width: 47px;
+    }
+    
+    .action-label {
+      font-family: 'Urbanist', sans-serif;
+      font-weight: 400;
+      font-size: 8px;
+      line-height: 125%;
+      letter-spacing: 0.16px;
+      text-align: center;
+      color: black;
+      margin-bottom: 2px;
+    }
+    
+    .action-button {
+      width: 20px;
+      height: 20px;
+      border: 1px solid black;
+      border-radius: 3px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      cursor: pointer;
+    }
+    
+    .answered-button {
+      background-color: #20B5C4;
+      color: white;
+    }
+    
+    .remove-button {
+      background-color: white;
+      color: black;
+    }
+    
+    .check-icon {
+      font-size: 14px;
+      font-weight: bold;
+    }
+    
+    .x-icon {
+      font-size: 14px;
+      font-weight: bold;
+    }
+    
+    .add-question-container {
+      display: flex;
+      align-items: center;
+      margin-top: 10px;
+      padding: 0 30px;
+    }
+    
+    .add-question-button {
+      width: 40px;
+      height: 40px;
+      background: white;
+      border-radius: 50%;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      margin-right: 15px;
+      box-shadow: 0px 4px 4px rgba(0, 0, 0, 0.25);
+      cursor: pointer;
+    }
+    
+    .plus-icon {
+      font-size: 24px;
+      font-weight: bold;
+      color: #B478CF;
+    }
+    
+    .add-question-text {
+      font-family: 'Urbanist', sans-serif;
+      font-weight: 600;
+      font-size: 16px;
+      color: black;
+    }
+    
+    /* Hide roadmap instruction when questions are active */
+    #visitRoadmapPage.questions-active .roadmap-instruction {
+      display: none !important;
+      height: 0 !important;
+      margin: 0 !important;
+      padding: 0 !important;
+    }
+  `;
+  document.head.appendChild(styleElement);
+  
+  console.log("Doctor questions page fixes loaded");
+});
+
+// // Direct event listener for Questions button
+// document.addEventListener('click', function(e) {
+//   if (e.target && (e.target.matches('.roadmap-nav-btn[data-target="questions"]') || 
+//                    e.target.closest('.roadmap-nav-btn[data-target="questions"]'))) {
+//     console.log('Questions button clicked directly');
+//     handleRoadmapNavigation('questions');
+//   }
+// });
+
+// // Direct event listener for Questions button
+// document.addEventListener('click', function(e) {
+//   if (e.target && (e.target.matches('.roadmap-nav-btn[data-target="questions"]') || 
+//                    e.target.closest('.roadmap-nav-btn[data-target="questions"]'))) {
+//     console.log('Questions button clicked directly');
+    
+//     // Get required elements
+//     const roadmapTitle = document.querySelector('.roadmap-title');
+//     const instructionText = document.querySelector('.roadmap-instruction');
+//     const cardsContainer = document.querySelector('.roadmap-cards-container');
+    
+//     // 1. Update the title
+//     if (roadmapTitle) {
+//       roadmapTitle.textContent = 'Questions for your Doctor';
+//     }
+    
+//     // 2. Hide the instruction text and cards
+//     if (instructionText) instructionText.style.display = 'none';
+//     if (cardsContainer) cardsContainer.style.display = 'none';
+    
+//     // 3. Get or create the questions container
+//     let questionsContainer = document.getElementById('doctorQuestionsList');
+//     if (!questionsContainer) {
+//       questionsContainer = document.createElement('div');
+//       questionsContainer.id = 'doctorQuestionsList';
+//       questionsContainer.className = 'doctor-questions-list';
+      
+//       // Add to roadmap content
+//       const roadmapContent = document.querySelector('.roadmap-content');
+//       if (roadmapContent) {
+//         roadmapContent.appendChild(questionsContainer);
+//       }
+//     }
+    
+//     // 4. Show the container
+//     questionsContainer.style.display = 'block';
+    
+//     // 5. Fill with content
+//     questionsContainer.innerHTML = `
+//       <p class="questions-instruction">
+//         Add any questions you want to ask your doctor. Use this list to ensure you get the information you need.
+//       </p>
+      
+//       <div class="questions-container">
+//         <!-- Questions will be added here -->
+//       </div>
+      
+//       <div class="add-question-container">
+//         <div class="add-question-button">
+//           <span class="plus-icon">+</span>
+//         </div>
+//         <p class="add-question-text">Question missing?<br>Not a problem, click to add</p>
+//       </div>
+//     `;
+    
+//     // 6. Add the questions
+//     const questionsContainerElement = questionsContainer.querySelector('.questions-container');
+    
+//     // Sample questions
+//     const sampleQuestions = [
+//       "What is the expected timeline for recovery?",
+//       "Are there any support groups available?",
+//       "Could this have to do with my new protein powder?",
+//       "What are the next steps that I should take?",
+//       "How can I prevent this condition from recurring in the future?"
+//     ];
+    
+//     // Add questions
+//     sampleQuestions.forEach(question => {
+//       const questionItem = document.createElement('div');
+//       questionItem.className = 'question-item';
+//       questionItem.innerHTML = `
+//         <div class="question-text">${question}</div>
+//         <div class="question-actions">
+//           <div class="action-container">
+//             <div class="action-label">Answered</div>
+//             <div class="action-button answered-button">
+//               <span class="check-icon">✓</span>
+//             </div>
+//           </div>
+//           <div class="action-container">
+//             <div class="action-label">Remove</div>
+//             <div class="action-button remove-button">
+//               <span class="x-icon">✕</span>
+//             </div>
+//           </div>
+//         </div>
+//       `;
+      
+//       questionsContainerElement.appendChild(questionItem);
+//     });
+    
+//     // 7. Add click handlers to action buttons
+//     const answeredButtons = questionsContainer.querySelectorAll(".answered-button");
+//     const removeButtons = questionsContainer.querySelectorAll(".remove-button");
+    
+//     answeredButtons.forEach(button => {
+//       button.addEventListener("click", function(event) {
+//         event.stopPropagation();
+//         this.classList.toggle("answered-button");
+//         if (this.classList.contains("answered-button")) {
+//           this.innerHTML = '<span class="check-icon">✓</span>';
+//         } else {
+//           this.innerHTML = '';
+//         }
+//       });
+//     });
+    
+//     removeButtons.forEach(button => {
+//       button.addEventListener("click", function(event) {
+//         event.stopPropagation();
+//         const questionItem = this.closest(".question-item");
+//         if (questionItem) {
+//           questionItem.style.transition = "opacity 0.3s ease-out";
+//           questionItem.style.opacity = "0";
+//           setTimeout(() => {
+//             questionItem.remove();
+//           }, 300);
+//         }
+//       });
+//     });
+//   }
+// });
+
+// DIRECT FIX FOR QUESTIONS TAB - DO NOT MODIFY
+(function() {
+  console.log("Loading direct questions fix");
+  
+  // Wait for DOM to be ready
+  function ready(fn) {
+    if (document.readyState !== 'loading') {
+      fn();
+    } else {
+      document.addEventListener('DOMContentLoaded', fn);
+    }
+  }
+  
+  ready(function() {
+    // Add direct click handler to Questions tab
+    const questionsTab = document.querySelector('.roadmap-nav-btn[data-target="questions"]');
+    if (questionsTab) {
+      // Clone to remove existing listeners
+      const newTab = questionsTab.cloneNode(true);
+      questionsTab.parentNode.replaceChild(newTab, questionsTab);
+      
+      newTab.addEventListener('click', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        
+        console.log("Questions tab clicked - direct handler");
+        
+        // Get/create container for questions
+        let questionsContainer = document.getElementById('doctorQuestionsList');
+        if (!questionsContainer) {
+          questionsContainer = document.createElement('div');
+          questionsContainer.id = 'doctorQuestionsList';
+          
+          // Add it to roadmap content
+          const roadmapContent = document.querySelector('.roadmap-content');
+          if (roadmapContent) {
+            roadmapContent.appendChild(questionsContainer);
+          } else {
+            console.error("roadmapContent not found");
+            return;
+          }
+        }
+        
+        // Ensure it's visible and has content
+        questionsContainer.style.display = 'block';
+        questionsContainer.innerHTML = `
+          <p class="questions-instruction">
+            Add any questions you want to ask your doctor. Use this list to ensure you get the information you need.
+          </p>
+          
+          <div class="questions-container">
+            <!-- Questions will be added here -->
+          </div>
+          
+          <div class="add-question-container">
+            <div class="add-question-button">
+              <span class="plus-icon">+</span>
+            </div>
+            <p class="add-question-text">Question missing?<br>Not a problem, click to add</p>
+          </div>
+        `;
+        
+        // Force visibility of roadmap title
+        const roadmapTitle = document.querySelector('.roadmap-title');
+        if (roadmapTitle) {
+          roadmapTitle.textContent = 'Questions for your Doctor';
+          roadmapTitle.style.display = 'block';
+          roadmapTitle.style.visibility = 'visible';
+        }
+        
+        // Force hiding of instruction and cards
+        const instructionText = document.querySelector('.roadmap-instruction');
+        const cardsContainer = document.querySelector('.roadmap-cards-container');
+        
+        if (instructionText) instructionText.style.display = 'none';
+        if (cardsContainer) cardsContainer.style.display = 'none';
+        
+        // Add the questions (always regenerate them)
+        const questionsContainerElement = questionsContainer.querySelector('.questions-container');
+        if (questionsContainerElement) {
+          // Clear first
+          questionsContainerElement.innerHTML = '';
+          
+          // Sample questions
+          const sampleQuestions = [
+            "What is the expected timeline for recovery?",
+            "Are there any support groups available?",
+            "Could this have to do with my new protein powder?",
+            "What are the next steps that I should take?",
+            "How can I prevent this condition from recurring in the future?"
+          ];
+          
+          // Add questions
+          sampleQuestions.forEach(question => {
+            const questionItem = document.createElement('div');
+            questionItem.className = 'question-item';
+            questionItem.style.display = 'flex';
+            questionItem.innerHTML = `
+              <div class="question-text">${question}</div>
+              <div class="question-actions">
+                <div class="action-container">
+                  <div class="action-label">Answered</div>
+                  <div class="action-button answered-button">
+                    <span class="check-icon">✓</span>
+                  </div>
+                </div>
+                <div class="action-container">
+                  <div class="action-label">Remove</div>
+                  <div class="action-button remove-button">
+                    <span class="x-icon">✕</span>
+                  </div>
+                </div>
+              </div>
+            `;
+            
+            questionsContainerElement.appendChild(questionItem);
+          });
+        }
+      });
+      
+      // Trigger click if button is already active
+      if (newTab.classList.contains('active')) {
+        console.log("Questions tab already active, triggering click");
+        newTab.click();
+      }
+    }
+  });
+})();
+
+// Enhanced styling for new question entry
+document.addEventListener('click', function(e) {
+  // Check if add question button is clicked
+  if (e.target && (e.target.matches('.add-question-button') || 
+                  e.target.matches('.plus-icon') || 
+                  e.target.closest('.add-question-button') ||
+                  e.target.closest('.add-question-text'))) {
+    
+    console.log('Add question button clicked');
+    
+    // Create a modal/dialog similar to the follow-up page style
+    const modalContainer = document.createElement('div');
+    modalContainer.className = 'question-entry-modal';
+    modalContainer.style.position = 'fixed';
+    modalContainer.style.top = '0';
+    modalContainer.style.left = '0';
+    modalContainer.style.width = '100%';
+    modalContainer.style.height = '100%';
+    modalContainer.style.backgroundColor = 'rgba(0, 0, 0, 0.5)';
+    modalContainer.style.zIndex = '9999';
+    modalContainer.style.display = 'flex';
+    modalContainer.style.justifyContent = 'center';
+    modalContainer.style.alignItems = 'center';
+    
+    // Create the modal content
+    const modalContent = document.createElement('div');
+    modalContent.className = 'question-entry-content';
+    modalContent.style.width = '90%';
+    modalContent.style.maxWidth = '340px';
+    modalContent.style.backgroundColor = 'white';
+    modalContent.style.borderRadius = '14px';
+    modalContent.style.boxShadow = '0 4px 10px rgba(0, 0, 0, 0.3)';
+    modalContent.style.overflow = 'hidden';
+    
+    // Create the header
+    const header = document.createElement('div');
+    header.style.display = 'flex';
+    header.style.justifyContent = 'space-between';
+    header.style.alignItems = 'center';
+    header.style.padding = '15px 10px';
+    
+    // Create the user info section (same as in your app)
+    const userInfo = document.createElement('div');
+    userInfo.style.display = 'flex';
+    userInfo.style.alignItems = 'center';
+    
+    // Get the stored avatar
+    const storedAvatar = sessionStorage.getItem("selectedAvatar") || "https://placehold.co/40x40";
+    const storedName = sessionStorage.getItem("userName") || "James";
+    
+    // Create avatar
+    const avatar = document.createElement('img');
+    avatar.src = storedAvatar;
+    avatar.style.width = '40px';
+    avatar.style.height = '40px';
+    avatar.style.borderRadius = '50%';
+    avatar.style.marginRight = '10px';
+    
+    // Create user name
+    const userName = document.createElement('div');
+    userName.style.display = 'flex';
+    userName.style.flexDirection = 'column';
+    
+    const name = document.createElement('div');
+    name.textContent = storedName;
+    name.style.fontSize = '18px';
+    name.style.fontWeight = '600';
+    name.style.color = 'black';
+    
+    const subtext = document.createElement('div');
+    subtext.textContent = 'New Question';
+    subtext.style.fontSize = '14px';
+    subtext.style.color = 'black';
+    
+    userName.appendChild(name);
+    userName.appendChild(subtext);
+    
+    userInfo.appendChild(avatar);
+    userInfo.appendChild(userName);
+    
+    // Create close button
+    const closeButton = document.createElement('div');
+    closeButton.innerHTML = '✕';
+    closeButton.style.fontSize = '20px';
+    closeButton.style.cursor = 'pointer';
+    closeButton.style.padding = '5px';
+    
+    header.appendChild(userInfo);
+    header.appendChild(closeButton);
+    
+    // Create the question number section
+    const questionNumber = document.createElement('div');
+    questionNumber.textContent = 'New';
+    questionNumber.style.fontSize = '50px';
+    questionNumber.style.fontWeight = '700';
+    questionNumber.style.color = 'black';
+    questionNumber.style.padding = '10px 20px';
+    
+    // Create the question input area
+    const questionArea = document.createElement('div');
+    questionArea.style.padding = '5px 20px 20px 20px';
+    
+    const questionLabel = document.createElement('div');
+    questionLabel.textContent = 'Enter your question for the doctor:';
+    questionLabel.style.fontSize = '16px';
+    questionLabel.style.fontWeight = '600';
+    questionLabel.style.marginBottom = '10px';
+    questionLabel.style.color = 'black';
+    
+    const questionInput = document.createElement('textarea');
+    questionInput.placeholder = 'Type your question here...';
+    questionInput.style.width = '100%';
+    questionInput.style.height = '100px';
+    questionInput.style.padding = '10px';
+    questionInput.style.border = '1px solid #ddd';
+    questionInput.style.borderRadius = '8px';
+    questionInput.style.resize = 'none';
+    questionInput.style.fontSize = '14px';
+    questionInput.style.fontFamily = 'Urbanist, sans-serif';
+    
+    questionArea.appendChild(questionLabel);
+    questionArea.appendChild(questionInput);
+    
+    // Create submit button
+    const submitContainer = document.createElement('div');
+    submitContainer.style.padding = '0 20px 20px 20px';
+    submitContainer.style.display = 'flex';
+    submitContainer.style.justifyContent = 'center';
+    
+    const submitButton = document.createElement('button');
+    submitButton.textContent = 'Submit';
+    submitButton.style.backgroundColor = '#B478CF';
+    submitButton.style.color = 'white';
+    submitButton.style.border = 'none';
+    submitButton.style.borderRadius = '20px';
+    submitButton.style.padding = '10px 30px';
+    submitButton.style.fontSize = '16px';
+    submitButton.style.fontWeight = '700';
+    submitButton.style.cursor = 'pointer';
+    
+    submitContainer.appendChild(submitButton);
+    
+    // Add all elements to the modal
+    modalContent.appendChild(header);
+    modalContent.appendChild(questionNumber);
+    modalContent.appendChild(questionArea);
+    modalContent.appendChild(submitContainer);
+    modalContainer.appendChild(modalContent);
+    
+    // Add to page
+    document.body.appendChild(modalContainer);
+    
+    // Focus the input
+    setTimeout(function() {
+      questionInput.focus();
+    }, 100);
+    
+    // Close button event
+    closeButton.addEventListener('click', function() {
+      document.body.removeChild(modalContainer);
+    });
+    
+    // Submit button event
+    submitButton.addEventListener('click', function() {
+      const question = questionInput.value.trim();
+      if (question) {
+        // Create the new question item
+        addNewDoctorQuestion(question);
+        // Close the modal
+        document.body.removeChild(modalContainer);
+      } else {
+        // Show error
+        alert('Please enter a question before submitting.');
+      }
+    });
+    
+    // Also submit on Enter key
+    questionInput.addEventListener('keydown', function(e) {
+      if (e.key === 'Enter' && !e.shiftKey) {
+        e.preventDefault();
+        submitButton.click();
+      }
+    });
+  }
+});
+
+// Function to add a new doctor question
+function addNewDoctorQuestion(questionText) {
+  // Find the questions container
+  const questionsContainer = document.querySelector('.questions-container');
+  if (!questionsContainer) {
+    console.error("Questions container not found");
+    return;
+  }
+  
+  // Get existing questions count
+  const existingQuestions = questionsContainer.querySelectorAll('.question-item');
+  const questionNumber = existingQuestions.length + 1;
+  
+  // Create the question item
+  const questionItem = document.createElement('div');
+  questionItem.className = 'question-item';
+  
+  // Create the question text element
+  const questionTextElement = document.createElement('div');
+  questionTextElement.className = 'question-text';
+  questionTextElement.textContent = questionText;
+  questionTextElement.style.flex = '1';
+  
+  // Create actions container
+  const actionsContainer = document.createElement('div');
+  actionsContainer.className = 'question-actions';
+  actionsContainer.style.display = 'flex';
+  actionsContainer.style.gap = '10px';
+  
+  // Create answered container
+  const answeredContainer = document.createElement('div');
+  answeredContainer.className = 'action-container';
+  answeredContainer.style.display = 'flex';
+  answeredContainer.style.flexDirection = 'column';
+  answeredContainer.style.alignItems = 'center';
+  answeredContainer.style.width = '47px';
+  
+  const answeredLabel = document.createElement('div');
+  answeredLabel.className = 'action-label';
+  answeredLabel.textContent = 'Answered';
+  
+  const answeredButton = document.createElement('div');
+  answeredButton.className = 'action-button';
+  answeredButton.style.width = '20px';
+  answeredButton.style.height = '20px';
+  answeredButton.style.border = '1px solid black';
+  answeredButton.style.borderRadius = '3px';
+  answeredButton.style.display = 'flex';
+  answeredButton.style.justifyContent = 'center';
+  answeredButton.style.alignItems = 'center';
+  answeredButton.style.cursor = 'pointer';
+  
+  answeredContainer.appendChild(answeredLabel);
+  answeredContainer.appendChild(answeredButton);
+  
+  // Create remove container
+  const removeContainer = document.createElement('div');
+  removeContainer.className = 'action-container';
+  removeContainer.style.display = 'flex';
+  removeContainer.style.flexDirection = 'column';
+  removeContainer.style.alignItems = 'center';
+  removeContainer.style.width = '47px';
+  
+  const removeLabel = document.createElement('div');
+  removeLabel.className = 'action-label';
+  removeLabel.textContent = 'Remove';
+  
+  const removeButton = document.createElement('div');
+  removeButton.className = 'action-button remove-button';
+  removeButton.style.width = '20px';
+  removeButton.style.height = '20px';
+  removeButton.style.border = '1px solid black';
+  removeButton.style.borderRadius = '3px';
+  removeButton.style.display = 'flex';
+  removeButton.style.justifyContent = 'center';
+  removeButton.style.alignItems = 'center';
+  removeButton.style.cursor = 'pointer';
+  
+  const removeIcon = document.createElement('span');
+  removeIcon.className = 'x-icon';
+  removeIcon.textContent = '✕';
+  removeIcon.style.fontSize = '14px';
+  removeIcon.style.fontWeight = 'bold';
+  
+  removeButton.appendChild(removeIcon);
+  removeContainer.appendChild(removeLabel);
+  removeContainer.appendChild(removeButton);
+  
+  // Add all elements to the actions container
+  actionsContainer.appendChild(answeredContainer);
+  actionsContainer.appendChild(removeContainer);
+  
+  // Add all elements to the question item
+  questionItem.appendChild(questionTextElement);
+  questionItem.appendChild(actionsContainer);
+  
+  // Add the question item to the questions container
+  questionsContainer.appendChild(questionItem);
+  
+  // Add button functionality
+  answeredButton.addEventListener('click', function(e) {
+    e.stopPropagation();
+    this.classList.toggle('answered-button');
+    if (this.classList.contains('answered-button')) {
+      this.innerHTML = '<span class="check-icon" style="font-size: 14px; font-weight: bold;">✓</span>';
+      this.style.backgroundColor = '#20B5C4';
+      this.style.color = 'white';
+    } else {
+      this.innerHTML = '';
+      this.style.backgroundColor = 'white';
+    }
+  });
+  
+  removeButton.addEventListener('click', function(e) {
+    e.stopPropagation();
+    const item = this.closest('.question-item');
+    if (item) {
+      item.style.transition = 'opacity 0.3s ease-out';
+      item.style.opacity = '0';
+      setTimeout(function() {
+        item.remove();
+      }, 300);
+    }
+  });
+  
+  // Fade in animation
+  questionItem.style.opacity = '0';
+  questionItem.style.transition = 'opacity 0.3s ease-in';
+  
+  setTimeout(function() {
+    questionItem.style.opacity = '1';
+  }, 10);
+}
+
+// Remove the default alert dialog behavior
+document.addEventListener('DOMContentLoaded', function() {
+  // Find all add question buttons
+  const addQuestionButtons = document.querySelectorAll('.add-question-button, .add-question-text, .plus-icon');
+  
+  // Remove any existing event listeners by cloning each button
+  addQuestionButtons.forEach(function(button) {
+    const newButton = button.cloneNode(true);
+    if (button.parentNode) {
+      button.parentNode.replaceChild(newButton, button);
+    }
+  });
+  
+  // After DOM loads, find the add-question-container again and add a single new click handler
+  const addQuestionContainer = document.querySelector('.add-question-container');
+  if (addQuestionContainer) {
+    // Clone to remove any existing listeners
+    const newContainer = addQuestionContainer.cloneNode(true);
+    addQuestionContainer.parentNode.replaceChild(newContainer, addQuestionContainer);
+    
+    // Add new click event listener to the container
+    newContainer.addEventListener('click', function(e) {
+      e.preventDefault();
+      e.stopPropagation();
+      
+      // Prevent the default dialog
+      e.stopImmediatePropagation();
+      
+      // Call our custom modal function instead
+      showCustomQuestionModal();
+    });
+  }
+});
+
+// Custom modal function
+function showCustomQuestionModal() {
+  console.log('Showing custom question modal');
+  
+  // Create the modal - this is the same code as before, just moved to a function
+  const modalContainer = document.createElement('div');
+  modalContainer.className = 'question-entry-modal';
+  modalContainer.style.position = 'fixed';
+  modalContainer.style.top = '0';
+  modalContainer.style.left = '0';
+  modalContainer.style.width = '100%';
+  modalContainer.style.height = '100%';
+  modalContainer.style.backgroundColor = 'rgba(0, 0, 0, 0.5)';
+  modalContainer.style.zIndex = '9999';
+  modalContainer.style.display = 'flex';
+  modalContainer.style.justifyContent = 'center';
+  modalContainer.style.alignItems = 'center';
+  
+  // [Rest of modal creation code remains the same as before]
+  
+  // Create the modal content
+  const modalContent = document.createElement('div');
+  modalContent.className = 'question-entry-content';
+  modalContent.style.width = '90%';
+  modalContent.style.maxWidth = '340px';
+  modalContent.style.backgroundColor = 'white';
+  modalContent.style.borderRadius = '14px';
+  modalContent.style.boxShadow = '0 4px 10px rgba(0, 0, 0, 0.3)';
+  modalContent.style.overflow = 'hidden';
+  
+  // Create the header
+  const header = document.createElement('div');
+  header.style.display = 'flex';
+  header.style.justifyContent = 'space-between';
+  header.style.alignItems = 'center';
+  header.style.padding = '15px 10px';
+  
+  // Create the user info section (same as in your app)
+  const userInfo = document.createElement('div');
+  userInfo.style.display = 'flex';
+  userInfo.style.alignItems = 'center';
+  
+  // Get the stored avatar
+  const storedAvatar = sessionStorage.getItem("selectedAvatar") || "https://placehold.co/40x40";
+  const storedName = sessionStorage.getItem("userName") || "James";
+  
+  // Create avatar
+  const avatar = document.createElement('img');
+  avatar.src = storedAvatar;
+  avatar.style.width = '40px';
+  avatar.style.height = '40px';
+  avatar.style.borderRadius = '50%';
+  avatar.style.marginRight = '10px';
+  
+  // Create user name
+  const userName = document.createElement('div');
+  userName.style.display = 'flex';
+  userName.style.flexDirection = 'column';
+  
+  const name = document.createElement('div');
+  name.textContent = storedName;
+  name.style.fontSize = '18px';
+  name.style.fontWeight = '600';
+  name.style.color = 'black';
+  
+  const subtext = document.createElement('div');
+  subtext.textContent = 'New Question';
+  subtext.style.fontSize = '14px';
+  subtext.style.color = 'black';
+  
+  userName.appendChild(name);
+  userName.appendChild(subtext);
+  
+  userInfo.appendChild(avatar);
+  userInfo.appendChild(userName);
+  
+  // Create close button
+  const closeButton = document.createElement('div');
+  closeButton.innerHTML = '✕';
+  closeButton.style.fontSize = '20px';
+  closeButton.style.cursor = 'pointer';
+  closeButton.style.padding = '5px';
+  
+  header.appendChild(userInfo);
+  header.appendChild(closeButton);
+  
+  // Create the question number section
+  const questionNumber = document.createElement('div');
+  questionNumber.textContent = 'New';
+  questionNumber.style.fontSize = '50px';
+  questionNumber.style.fontWeight = '700';
+  questionNumber.style.color = 'black';
+  questionNumber.style.padding = '10px 20px';
+  
+  // Create the question input area
+  const questionArea = document.createElement('div');
+  questionArea.style.padding = '5px 20px 20px 20px';
+  
+  const questionLabel = document.createElement('div');
+  questionLabel.textContent = 'Enter your question for the doctor:';
+  questionLabel.style.fontSize = '16px';
+  questionLabel.style.fontWeight = '600';
+  questionLabel.style.marginBottom = '10px';
+  questionLabel.style.color = 'black';
+  
+  const questionInput = document.createElement('textarea');
+  questionInput.placeholder = 'Type your question here...';
+  questionInput.style.width = '100%';
+  questionInput.style.height = '100px';
+  questionInput.style.padding = '10px';
+  questionInput.style.border = '1px solid #ddd';
+  questionInput.style.borderRadius = '8px';
+  questionInput.style.resize = 'none';
+  questionInput.style.fontSize = '14px';
+  questionInput.style.fontFamily = 'Urbanist, sans-serif';
+  
+  questionArea.appendChild(questionLabel);
+  questionArea.appendChild(questionInput);
+  
+  // Create submit button
+  const submitContainer = document.createElement('div');
+  submitContainer.style.padding = '0 20px 20px 20px';
+  submitContainer.style.display = 'flex';
+  submitContainer.style.justifyContent = 'center';
+  
+  const submitButton = document.createElement('button');
+  submitButton.textContent = 'Submit';
+  submitButton.style.backgroundColor = '#B478CF';
+  submitButton.style.color = 'white';
+  submitButton.style.border = 'none';
+  submitButton.style.borderRadius = '20px';
+  submitButton.style.padding = '10px 30px';
+  submitButton.style.fontSize = '16px';
+  submitButton.style.fontWeight = '700';
+  submitButton.style.cursor = 'pointer';
+  
+  submitContainer.appendChild(submitButton);
+  
+  // Add all elements to the modal
+  modalContent.appendChild(header);
+  modalContent.appendChild(questionNumber);
+  modalContent.appendChild(questionArea);
+  modalContent.appendChild(submitContainer);
+  modalContainer.appendChild(modalContent);
+  
+  // Add to page
+  document.body.appendChild(modalContainer);
+  
+  // Focus the input
+  setTimeout(function() {
+    questionInput.focus();
+  }, 100);
+  
+  // Close button event
+  closeButton.addEventListener('click', function() {
+    document.body.removeChild(modalContainer);
+  });
+  
+  // Submit button event
+  submitButton.addEventListener('click', function() {
+    const question = questionInput.value.trim();
+    if (question) {
+      // Create the new question item
+      addNewDoctorQuestion(question);
+      // Close the modal
+      document.body.removeChild(modalContainer);
+    } else {
+      // Show error
+      alert('Please enter a question before submitting.');
+    }
+  });
+  
+  // Also submit on Enter key
+  questionInput.addEventListener('keydown', function(e) {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      submitButton.click();
+    }
+  });
+}
+
+// Enhanced function for the "Prep my doctor's notes" button
+function setupPrepNotesButtonHandler() {
+  console.log("Setting up enhanced prep notes button handler");
+  
+  // Find all prep notes buttons in the app
+  const prepNotesButtons = document.querySelectorAll(".prep-notes-button");
+  
+  prepNotesButtons.forEach(button => {
+    // Clone to remove existing listeners
+    const newButton = button.cloneNode(true);
+    button.parentNode.replaceChild(newButton, button);
+    
+    // Add click event listener
+    newButton.addEventListener("click", async function(event) {
+      event.preventDefault();
+      event.stopPropagation();
+      
+      console.log("Prep doctor's notes button clicked");
+      
+      // Collect selected logs
+      const selectedLogs = [];
+      const checkboxes = document.querySelectorAll(".log-checkbox .checkbox.checked");
+      
+      console.log(`Found ${checkboxes.length} checked checkboxes`);
+      
+      checkboxes.forEach(checkbox => {
+        const card = checkbox.closest(".health-log-card");
+        if (card) {
+          const dateElement = card.querySelector(".log-date");
+          const textElement = card.querySelector(".log-text");
+          
+          if (dateElement && textElement) {
+            const date = dateElement.textContent;
+            const text = textElement.textContent;
+            
+            // Add to selected logs array
+            selectedLogs.push({
+              date: date,
+              text: text
+            });
+          }
+        }
+      });
+      
+      console.log(`Selected ${selectedLogs.length} logs for doctor's notes`);
+      
+      // Store in sessionStorage
+      sessionStorage.setItem("selectedLogs", JSON.stringify(selectedLogs));
+      
+      // Show alert if no logs selected
+      if (selectedLogs.length === 0) {
+        alert("Please select at least one health log to prepare doctor's notes.");
+        return;
+      }
+      
+      // Show loading indicator
+      const loadingIndicator = document.createElement("div");
+      loadingIndicator.style.position = "fixed";
+      loadingIndicator.style.top = "0";
+      loadingIndicator.style.left = "0";
+      loadingIndicator.style.width = "100%";
+      loadingIndicator.style.height = "100%";
+      loadingIndicator.style.backgroundColor = "rgba(0, 0, 0, 0.5)";
+      loadingIndicator.style.display = "flex";
+      loadingIndicator.style.justifyContent = "center";
+      loadingIndicator.style.alignItems = "center";
+      loadingIndicator.style.zIndex = "9999";
+      
+      const loadingContent = document.createElement("div");
+      loadingContent.style.backgroundColor = "white";
+      loadingContent.style.padding = "20px";
+      loadingContent.style.borderRadius = "10px";
+      loadingContent.style.textAlign = "center";
+      loadingContent.innerHTML = `
+        <div style="margin-bottom: 15px; font-family: 'Urbanist', sans-serif; font-size: 18px;">
+          Preparing your doctor's notes...
+        </div>
+        <div style="width: 50px; height: 50px; border: 5px solid #f3f3f3; border-top: 5px solid #B478CF; border-radius: 50%; margin: 0 auto; animation: spin 1s linear infinite;"></div>
+      `;
+      
+      // Add spin animation
+      const styleSheet = document.createElement("style");
+      styleSheet.textContent = `
+        @keyframes spin {
+          0% { transform: rotate(0deg); }
+          100% { transform: rotate(360deg); }
+        }
+      `;
+      document.head.appendChild(styleSheet);
+      
+      loadingIndicator.appendChild(loadingContent);
+      document.body.appendChild(loadingIndicator);
+      
+      try {
+        // Call API with selected logs
+        const apiData = {
+          logs: selectedLogs,
+          requestType: "visitRoadmap" // Tell the API what we're requesting
+        };
+        
+        // Call API
+        const response = await callAPI("vitalstory", "POST", JSON.stringify(apiData));
+        console.log("API response:", response);
+        
+        // Extract data from API response
+        let roadmapData = {};
+        
+        if (response && response.Prediction) {
+          try {
+            // Try to extract JSON from the response
+            const jsonMatch = response.Prediction.match(/\{[\s\S]*\}/);
+            if (jsonMatch) {
+              roadmapData = JSON.parse(jsonMatch[0]);
+            } else {
+              // If no JSON, try to extract useful information
+              roadmapData = {
+                summary: response.Prediction.includes("Summary:") ? 
+                  response.Prediction.split("Summary:")[1].split("\n")[0].trim() : 
+                  "Based on your selected logs, here's a summary of your health concerns.",
+                
+                symptoms: response.Prediction.includes("Symptoms:") ? 
+                  response.Prediction.split("Symptoms:")[1].split("\n")[0].trim() : 
+                  "Symptoms identified in your logs.",
+                
+                timeline: response.Prediction.includes("Timeline:") ? 
+                  response.Prediction.split("Timeline:")[1].split("\n")[0].trim() : 
+                  "Timeline of your symptoms based on selected logs.",
+                
+                impact: response.Prediction.includes("Impact:") ? 
+                  response.Prediction.split("Impact:")[1].split("\n")[0].trim() : 
+                  "How these symptoms are affecting your daily life."
+              };
+            }
+          } catch (parseError) {
+            console.error("Error parsing API response:", parseError);
+            // Use default data
+            roadmapData = {
+              summary: "Based on your selected logs, here's a summary of your health concerns.",
+              symptoms: ["Symptom 1", "Symptom 2", "Symptom 3"],
+              timeline: "Timeline of your symptoms based on selected logs.",
+              impact: "How these symptoms are affecting your daily life."
+            };
+          }
+        }
+        
+        // Store roadmap data in sessionStorage
+        sessionStorage.setItem("roadmapData", JSON.stringify(roadmapData));
+        
+        // Remove loading indicator
+        document.body.removeChild(loadingIndicator);
+        
+        // Navigate to visit roadmap page
+        const currentPage = document.querySelector(".page.visible");
+        if (currentPage && currentPage.id !== "visitRoadmapPage") {
+          transitionPages(currentPage.id, "visitRoadmapPage");
+          
+          // Initialize the roadmap page after transition
+          setTimeout(() => {
+            initializeVisitRoadmapWithData(roadmapData);
+          }, 300);
+        }
+      } catch (error) {
+        console.error("Error processing logs with API:", error);
+        
+        // Remove loading indicator
+        document.body.removeChild(loadingIndicator);
+        
+        // Navigate to visit roadmap page anyway with default data
+        const currentPage = document.querySelector(".page.visible");
+        if (currentPage && currentPage.id !== "visitRoadmapPage") {
+          transitionPages(currentPage.id, "visitRoadmapPage");
+          
+          // Initialize with default data
+          setTimeout(() => {
+            initializeVisitRoadmapPage();
+          }, 300);
+        }
+      }
+    });
+  });
+  
+  console.log("Prep notes button handler improved successfully");
+}
+
+// New function to initialize roadmap with API data
+function initializeVisitRoadmapWithData(roadmapData) {
+  console.log("Initializing Visit Roadmap with API data:", roadmapData);
+  
+  // Make sure we have the roadmap content area
+  const roadmapContent = document.querySelector('.roadmap-content');
+  if (!roadmapContent) {
+    console.error("Roadmap content not found");
+    return;
+  }
+  
+  // Initialize the page structure
+  initializeVisitRoadmapPage();
+  
+  // Update cards with API data
+  updateCardsWithRoadmapData(roadmapData);
+}
+
+// Function to update cards with roadmap data
+function updateCardsWithRoadmapData(data) {
+  console.log("Updating roadmap cards with data:", data);
+  
+  // Update summary card
+  const summaryContent = document.querySelector("#summaryCard .card-content");
+  if (summaryContent && data.summary) {
+    summaryContent.innerHTML = `
+      <p class="card-paragraph">
+        <strong>Summary:</strong>
+      </p>
+      <p class="card-paragraph">
+        ${data.summary}
+      </p>
+    `;
+  }
+  
+  // Update symptoms card
+  const symptomsContent = document.querySelector("#symptomsCard .card-content");
+  if (symptomsContent && data.symptoms) {
+    let symptomsHtml = '';
+    
+    // Check if symptoms is an array or a string
+    if (Array.isArray(data.symptoms)) {
+      // Handle array of symptoms
+      data.symptoms.forEach(symptom => {
+        symptomsHtml += `
+          <p class="card-symptom">
+            <strong>${symptom}:</strong> Noted in your health logs
+          </p>
+        `;
+      });
+    } else {
+      // Handle string of symptoms
+      symptomsHtml = `
+        <p class="card-paragraph">
+          ${data.symptoms}
+        </p>
+      `;
+    }
+    
+    symptomsContent.innerHTML = symptomsHtml;
+  }
+  
+  // Update timeline card
+  const timelineContent = document.querySelector("#timelineCard .card-content");
+  if (timelineContent && data.timeline) {
+    timelineContent.innerHTML = `
+      <p class="card-paragraph">
+        ${data.timeline}
+      </p>
+    `;
+  }
+  
+  // Update impact card
+  const impactContent = document.querySelector("#impactCard .card-content");
+  if (impactContent && data.impact) {
+    impactContent.innerHTML = `
+      <p class="card-paragraph">
+        ${data.impact}
+      </p>
+    `;
+  }
+  
+  // Make the summary card visible
+  showRoadmapCardById('summaryCard');
+}
 window.addMenuToApp = addMenuToApp;
