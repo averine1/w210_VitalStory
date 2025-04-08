@@ -22,7 +22,7 @@ Patients often struggle to consistently and accurately share relevant health inf
 ```
 ## Additional Resources
 
-You can access additional resources and data files [here](https://drive.google.com/drive/folders/1seaFZE4kNgzxefj8gGbBmvSFv7aysGhj?usp=sharing).
+👉 You can access additional resources and data files [here](https://drive.google.com/drive/folders/1seaFZE4kNgzxefj8gGbBmvSFv7aysGhj?usp=sharing).
 
 
 
