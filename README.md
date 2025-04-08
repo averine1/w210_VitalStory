@@ -12,7 +12,9 @@ Patients often struggle to consistently and accurately share relevant health inf
 
 ```text
 .
-├── 00_Reference              # Reference files for the project 
+├── 00_Reference              # Reference files for the project
+├── 01_Model                  # Reference files for models
+├── 02_Evaluation             # Reference files for evaluation
 ├── README.md                 # This current file
 ├── Presentation              # Placeholder
 
@@ -23,11 +25,7 @@ You can access additional resources and data files [here](https://drive.google.c
 
 
 
-## NEXT SECTION
+## Learn More
 
-Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua...
+Check us out at [MyVitalStory.com](https://www.myvitalstory.com/)
 
-
-## NEXT SECTION
-
-Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua...
