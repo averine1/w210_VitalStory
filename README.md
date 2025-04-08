@@ -13,8 +13,9 @@ Patients often struggle to consistently and accurately share relevant health inf
 ```text
 .
 ├── 00_Reference              # Reference files for the project
-├── 01_Model                  # Reference files for models
-├── 02_Evaluation             # Reference files for evaluation
+├── 01_EDA                    # Reference files for exploratory data analysis
+├── 02_Model                  # Reference files for models
+├── 03_Evaluation             # Reference files for evaluation
 ├── README.md                 # This current file
 ├── Presentation              # Placeholder
 
