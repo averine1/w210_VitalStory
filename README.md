@@ -1,4 +1,4 @@
-![VitalStory](https://github.com/averine1/w210_VitalStory/blob/main/00_reference/pictures/banner1_vitalstory.png?raw=true)
+![VitalStory](https://github.com/averine1/w210_VitalStory/blob/main/00_reference/pictures/vs_banner.png?raw=true)
 
 ## Let's take the stress out of doctor's visits and make the most of your medical care.
 
