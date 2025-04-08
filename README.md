@@ -28,5 +28,5 @@ Patients often struggle to consistently and accurately share relevant health inf
 
 ## Learn More
 
-Check us out at [MyVitalStory.com](https://www.myvitalstory.com/)
+👉 Check us out at [MyVitalStory.com](https://www.myvitalstory.com/)
 
